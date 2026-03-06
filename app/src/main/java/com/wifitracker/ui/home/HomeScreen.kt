@@ -25,6 +25,7 @@ fun HomeScreen(
 
     val permissionsState = rememberMultiplePermissionsState(
         permissions = listOf(
+            android.Manifest.permission.ACCESS_FINE_LOCATION,
             android.Manifest.permission.NEARBY_WIFI_DEVICES,
             android.Manifest.permission.POST_NOTIFICATIONS
         )

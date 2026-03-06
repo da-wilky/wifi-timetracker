@@ -5,6 +5,7 @@ import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import android.net.wifi.WifiInfo
+import android.util.Log
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -20,6 +21,10 @@ data class WifiNetworkInfo(
 class WifiMonitor @Inject constructor(
     private val connectivityManager: ConnectivityManager
 ) {
+    companion object {
+        private const val TAG = "WifiMonitor"
+    }
+
     fun observeWifiNetwork(): Flow<WifiNetworkInfo?> = callbackFlow {
         // Emit initial state immediately
         val activeNetwork = connectivityManager.activeNetwork
@@ -28,11 +33,14 @@ class WifiMonitor @Inject constructor(
         }
         if (activeCapabilities?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) == true) {
             val wifiInfo = activeCapabilities.transportInfo as? WifiInfo
+            Log.d(TAG, "Initial WiFi check: wifiInfo=$wifiInfo, ssid=${wifiInfo?.ssid}, bssid=${wifiInfo?.bssid}")
             val info = wifiInfo?.let {
                 val parsedSsid = it.ssid.removeSurrounding("\"")
                 if (parsedSsid == "<unknown ssid>") {
+                    Log.w(TAG, "Received sentinel '<unknown ssid>' - likely missing location permission")
                     null
                 } else {
+                    Log.i(TAG, "WiFi network detected: ssid=$parsedSsid, bssid=${it.bssid}")
                     WifiNetworkInfo(
                         ssid = parsedSsid,
                         bssid = it.bssid
@@ -41,6 +49,7 @@ class WifiMonitor @Inject constructor(
             }
             trySend(info)
         } else {
+            Log.d(TAG, "No active WiFi transport")
             trySend(null)
         }
 
@@ -54,12 +63,15 @@ class WifiMonitor @Inject constructor(
                 networkCapabilities: NetworkCapabilities
             ) {
                 val wifiInfo = networkCapabilities.transportInfo as? WifiInfo
+                Log.d(TAG, "Network capabilities changed: wifiInfo=$wifiInfo, ssid=${wifiInfo?.ssid}, bssid=${wifiInfo?.bssid}")
                 val info = wifiInfo?.let {
                     val parsedSsid = it.ssid.removeSurrounding("\"")
                     // Android returns "<unknown ssid>" when SSID is unavailable
                     if (parsedSsid == "<unknown ssid>") {
+                        Log.w(TAG, "Received sentinel '<unknown ssid>' in callback - likely missing location permission")
                         null
                     } else {
+                        Log.i(TAG, "WiFi network update: ssid=$parsedSsid, bssid=${it.bssid}")
                         WifiNetworkInfo(
                             ssid = parsedSsid,
                             bssid = it.bssid
@@ -70,6 +82,7 @@ class WifiMonitor @Inject constructor(
             }
 
             override fun onLost(network: Network) {
+                Log.i(TAG, "WiFi network lost")
                 trySend(null)
             }
         }
