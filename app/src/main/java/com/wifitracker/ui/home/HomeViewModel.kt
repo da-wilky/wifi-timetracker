@@ -11,6 +11,7 @@ import com.wifitracker.data.local.dao.TrackerDao
 import com.wifitracker.data.local.entity.TrackerEntity
 import com.wifitracker.data.repository.TrackerRepository
 import com.wifitracker.service.WifiMonitor
+import com.wifitracker.service.WifiNetworkState
 import com.wifitracker.service.WifiTrackingService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -26,14 +27,16 @@ class HomeViewModel @Inject constructor(
     wifiMonitor: WifiMonitor
 ) : ViewModel() {
 
-    private val _wifiInfo = wifiMonitor.observeWifiNetwork()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+    private val _wifiState = wifiMonitor.observeWifiNetwork()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), WifiNetworkState.Disconnected)
 
-    val currentSsid: StateFlow<String?> = _wifiInfo.map { it?.ssid }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+    val currentSsid: StateFlow<String?> = _wifiState.map {
+        (it as? WifiNetworkState.Connected)?.ssid
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
-    val currentBssid: StateFlow<String?> = _wifiInfo.map { it?.bssid }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+    val currentBssid: StateFlow<String?> = _wifiState.map {
+        (it as? WifiNetworkState.Connected)?.bssid
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     val isTracked: StateFlow<Boolean> = combine(
         currentSsid,
