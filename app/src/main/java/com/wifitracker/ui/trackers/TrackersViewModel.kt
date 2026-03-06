@@ -96,6 +96,10 @@ class TrackersViewModel @Inject constructor(
         _selectedFilter.value = filter
     }
 
+    suspend fun refresh() {
+        kotlinx.coroutines.delay(REFRESH_DISPLAY_DURATION_MS)
+    }
+
     fun deleteTracker(tracker: Tracker) {
         viewModelScope.launch {
             trackerRepository.delete(tracker)
@@ -106,5 +110,9 @@ class TrackersViewModel @Inject constructor(
         viewModelScope.launch {
             eventDao.deleteAllByTracker(trackerId)
         }
+    }
+
+    companion object {
+        private const val REFRESH_DISPLAY_DURATION_MS = 600L
     }
 }

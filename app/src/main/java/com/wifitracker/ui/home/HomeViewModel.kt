@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.wifitracker.data.local.dao.EventDao
 import com.wifitracker.data.local.dao.TrackerDao
+import com.wifitracker.data.local.entity.EventEntity
 import com.wifitracker.data.local.entity.TrackerEntity
 import com.wifitracker.data.repository.EventRepository
 import com.wifitracker.data.repository.TrackerRepository
@@ -141,17 +142,45 @@ class HomeViewModel @Inject constructor(
         _selectedFilter.value = filter
     }
 
+    suspend fun refresh() {
+        // The WiFi state is already observed via a live Flow. This suspend function
+        // gives the pull-to-refresh gesture a brief moment to show before dismissing.
+        kotlinx.coroutines.delay(REFRESH_DISPLAY_DURATION_MS)
+    }
+
+    companion object {
+        private const val REFRESH_DISPLAY_DURATION_MS = 600L
+    }
+
     fun createTracker() {
         viewModelScope.launch {
             val ssid = currentSsid.value ?: return@launch
+            val now = System.currentTimeMillis()
 
-            trackerDao.insert(
+            val trackerId = trackerDao.insert(
                 TrackerEntity(
                     ssid = ssid,
                     bssid = null,
-                    createdAt = System.currentTimeMillis()
+                    createdAt = now
                 )
             )
+
+            // If the background service is already running it will NOT detect the
+            // newly-created tracker because the SSID has not changed from its
+            // perspective. Insert a synthetic CONNECT event so the timer starts
+            // immediately without waiting for the next network transition.
+            val isServiceRunning = context
+                .getSharedPreferences("wifi_tracker_prefs", Context.MODE_PRIVATE)
+                .getBoolean("service_running", false)
+            if (isServiceRunning) {
+                eventDao.insert(
+                    EventEntity(
+                        trackerId = trackerId,
+                        eventType = EventType.CONNECT.name,
+                        timestamp = now
+                    )
+                )
+            }
 
             val serviceIntent = Intent(context, WifiTrackingService::class.java)
             ContextCompat.startForegroundService(context, serviceIntent)
