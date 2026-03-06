@@ -3,9 +3,15 @@ package com.wifitracker.ui.trackers
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshContainer
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -21,37 +27,59 @@ fun TrackersScreen(
     val trackers by viewModel.trackers.collectAsState()
     val selectedFilter by viewModel.selectedFilter.collectAsState()
     var showFilterDialog by remember { mutableStateOf(false) }
-    var selectedTrackerId by remember { mutableStateOf<Long?>(null) }
+
+    val pullRefreshState = rememberPullToRefreshState()
+    if (pullRefreshState.isRefreshing) {
+        LaunchedEffect(true) {
+            viewModel.refresh()
+            pullRefreshState.endRefresh()
+        }
+    }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.tab_trackers)) }
+                title = { Text(stringResource(R.string.tab_trackers)) },
+                actions = {
+                    IconButton(onClick = { showFilterDialog = true }) {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = stringResource(R.string.filter_time_range)
+                        )
+                    }
+                }
             )
         }
     ) { paddingValues ->
-        LazyColumn(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+                .nestedScroll(pullRefreshState.nestedScrollConnection)
         ) {
-            items(trackers, key = { it.id }) { tracker ->
-                val displayTime by viewModel.getTrackerTime(tracker.id).collectAsState()
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(trackers, key = { it.id }) { tracker ->
+                    val displayTime by viewModel.getTrackerTime(tracker.id).collectAsState()
 
-                TrackerCard(
-                    tracker = tracker,
-                    displayTime = displayTime,
-                    onDelete = { viewModel.deleteTracker(tracker) },
-                    onReset = { viewModel.resetTimer(tracker.id) },
-                    onFilterClick = {
-                        selectedTrackerId = tracker.id
-                        showFilterDialog = true
-                    },
-                    onClick = { onNavigateToEventLog(tracker.id) }
-                )
+                    TrackerCard(
+                        tracker = tracker,
+                        displayTime = displayTime,
+                        onDelete = { viewModel.deleteTracker(tracker) },
+                        onReset = { viewModel.resetTimer(tracker.id) },
+                        onClick = { onNavigateToEventLog(tracker.id) }
+                    )
+                }
             }
+
+            PullToRefreshContainer(
+                state = pullRefreshState,
+                modifier = Modifier.align(Alignment.TopCenter)
+            )
         }
     }
 

@@ -56,4 +56,8 @@
     <string name="edit_time_between">Time must be between %1$s and %2$s</string>
     <string name="currently_connected_label">Currently connected</string>
     <string name="not_connected_hint">Not connected to any WiFi network</string>
+    <string name="filter_select_date_range">Select Date Range</string>
+    <string name="filter_select_start_time">Select Start Time</string>
+    <string name="filter_select_end_time">Select End Time</string>
+    <string name="filter_time_range">Time Range</string>
 </resources>

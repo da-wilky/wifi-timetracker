@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -16,7 +15,6 @@ import androidx.compose.ui.unit.dp
 import com.wifitracker.R
 import com.wifitracker.domain.model.Tracker
 import com.wifitracker.ui.components.ConfirmationDialog
-import com.wifitracker.ui.components.DateFilterDialog
 import com.wifitracker.ui.components.TimerDisplay
 
 @Composable
@@ -25,7 +23,6 @@ fun TrackerCard(
     displayTime: Long,
     onDelete: () -> Unit,
     onReset: () -> Unit,
-    onFilterClick: () -> Unit,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     isCurrentlyConnected: Boolean = false
@@ -65,12 +62,6 @@ fun TrackerCard(
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = onFilterClick) {
-                    Icon(
-                        imageVector = Icons.Default.Settings,
-                        contentDescription = "Filter"
-                    )
-                }
                 IconButton(onClick = { showResetDialog = true }) {
                     Icon(
                         imageVector = Icons.Default.Refresh,
