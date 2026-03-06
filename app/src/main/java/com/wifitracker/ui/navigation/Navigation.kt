@@ -2,7 +2,6 @@ package com.wifitracker.ui.navigation
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -19,11 +18,9 @@ import com.wifitracker.R
 import com.wifitracker.ui.detail.EventLogScreen
 import com.wifitracker.ui.home.HomeScreen
 import com.wifitracker.ui.settings.SettingsScreen
-import com.wifitracker.ui.trackers.TrackersScreen
 
 sealed class Screen(val route: String) {
     data object Home : Screen("home")
-    data object Trackers : Screen("trackers")
     data object EventLog : Screen("eventLog/{trackerId}") {
         fun createRoute(trackerId: Long) = "eventLog/$trackerId"
     }
@@ -48,25 +45,7 @@ fun BottomNavigationBar(
                         saveState = true
                     }
                     launchSingleTop = true
-                    // Do NOT restoreState here: restoring state for the start destination
-                    // would bring back a previously-saved Trackers/Settings back stack,
-                    // making it appear as though the Home tap did nothing.
                     restoreState = false
-                }
-            }
-        )
-
-        NavigationBarItem(
-            icon = { Icon(Icons.Default.List, contentDescription = null) },
-            label = { Text(stringResource(R.string.tab_trackers)) },
-            selected = currentDestination?.hierarchy?.any { it.route == Screen.Trackers.route } == true,
-            onClick = {
-                navController.navigate(Screen.Trackers.route) {
-                    popUpTo(navController.graph.startDestinationId) {
-                        saveState = true
-                    }
-                    launchSingleTop = true
-                    restoreState = true
                 }
             }
         )
@@ -100,17 +79,6 @@ fun AppNavHost(
     ) {
         composable(Screen.Home.route) {
             HomeScreen(
-                onNavigateToTrackers = {
-                    navController.navigate(Screen.Trackers.route)
-                },
-                onNavigateToEventLog = { trackerId ->
-                    navController.navigate(Screen.EventLog.createRoute(trackerId))
-                }
-            )
-        }
-
-        composable(Screen.Trackers.route) {
-            TrackersScreen(
                 onNavigateToEventLog = { trackerId ->
                     navController.navigate(Screen.EventLog.createRoute(trackerId))
                 }

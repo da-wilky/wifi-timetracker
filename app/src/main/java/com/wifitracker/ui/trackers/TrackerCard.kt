@@ -1,5 +1,6 @@
 package com.wifitracker.ui.trackers
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -26,7 +27,8 @@ fun TrackerCard(
     onReset: () -> Unit,
     onFilterClick: () -> Unit,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isCurrentlyConnected: Boolean = false
 ) {
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showResetDialog by remember { mutableStateOf(false) }
@@ -34,12 +36,23 @@ fun TrackerCard(
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
+            .clickable(onClick = onClick),
+        border = if (isCurrentlyConnected) {
+            BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
+        } else null
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
+            if (isCurrentlyConnected) {
+                Text(
+                    text = stringResource(R.string.currently_connected_label),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+
             Text(
                 text = tracker.ssid,
                 style = MaterialTheme.typography.titleLarge

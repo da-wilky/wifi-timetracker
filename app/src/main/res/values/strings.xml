@@ -46,4 +46,7 @@
     <string name="bssid_first_seen">First seen: %s</string>
     <string name="confirm_stop_tracking_title">Stop WiFi Tracking</string>
     <string name="confirm_stop_tracking_message">Stop tracking completely and remove the background service?</string>
+    <string name="start_tracking">Start Tracking</string>
+    <string name="currently_connected_label">Currently connected</string>
+    <string name="not_connected_hint">Not connected to any WiFi network</string>
 </resources>
