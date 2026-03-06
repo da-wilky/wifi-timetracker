@@ -26,6 +26,8 @@
     <string name="event_log">Ereignisprotokoll</string>
     <string name="edit_event">Ereignis bearbeiten</string>
     <string name="save">Speichern</string>
+    <string name="next">Weiter</string>
+    <string name="back">Zurück</string>
     <string name="orphaned_sessions_warning">Einige Tracking-Sitzungen wurden nicht ordnungsgemäß beendet. Sie wurden automatisch geschlossen. Bitte überprüfen und bei Bedarf anpassen.</string>
     <string name="view_events">Ereignisse anzeigen</string>
     <string name="permission_rationale">Diese App benötigt WLAN- und Benachrichtigungsberechtigungen, um Ihre Netzwerknutzung zu erfassen.</string>

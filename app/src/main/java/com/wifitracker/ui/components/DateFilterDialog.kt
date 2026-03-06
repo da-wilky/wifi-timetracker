@@ -8,8 +8,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.wifitracker.R
 import com.wifitracker.domain.model.DateFilter
-import java.time.Instant
-import java.time.ZoneId
+import com.wifitracker.util.MondayFirstLocale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -89,7 +88,9 @@ fun DateFilterDialog(
     )
 
     if (showCustomPicker) {
-        val datePickerState = rememberDatePickerState()
+        val datePickerState = remember {
+            DatePickerState(locale = MondayFirstLocale)
+        }
         DatePickerDialog(
             onDismissRequest = { showCustomPicker = false },
             confirmButton = {

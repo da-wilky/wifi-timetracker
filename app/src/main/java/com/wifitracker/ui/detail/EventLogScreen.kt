@@ -10,6 +10,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -17,6 +18,7 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import com.wifitracker.R
 import com.wifitracker.domain.model.BssidRecord
 import com.wifitracker.domain.model.WifiEvent
+import com.wifitracker.util.MondayFirstLocale
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -187,31 +189,83 @@ fun EventEditDialog(
     onSave: (Long) -> Unit,
     onDismiss: () -> Unit
 ) {
-    val datePickerState = rememberDatePickerState(
-        initialSelectedDateMillis = event.timestamp
+    val initialZoned = Instant.ofEpochMilli(event.timestamp).atZone(ZoneId.systemDefault())
+    var showTimePicker by remember { mutableStateOf(false) }
+
+    // Use Monday-first locale so the calendar week always starts on Monday
+    val datePickerState = remember {
+        DatePickerState(
+            locale = MondayFirstLocale,
+            initialSelectedDateMillis = event.timestamp
+        )
+    }
+
+    val is24Hour = android.text.format.DateFormat.is24HourFormat(LocalContext.current)
+    val timePickerState = rememberTimePickerState(
+        initialHour = initialZoned.hour,
+        initialMinute = initialZoned.minute,
+        is24Hour = is24Hour
     )
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.edit_event)) },
-        text = {
-            DatePicker(state = datePickerState)
-        },
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    datePickerState.selectedDateMillis?.let { onSave(it) }
+    if (!showTimePicker) {
+        DatePickerDialog(
+            onDismissRequest = onDismiss,
+            confirmButton = {
+                TextButton(
+                    onClick = { showTimePicker = true },
+                    enabled = datePickerState.selectedDateMillis != null
+                ) {
+                    Text(stringResource(R.string.next))
                 }
-            ) {
-                Text(stringResource(R.string.save))
+            },
+            dismissButton = {
+                TextButton(onClick = onDismiss) {
+                    Text(stringResource(R.string.cancel))
+                }
             }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.cancel))
-            }
+        ) {
+            DatePicker(state = datePickerState)
         }
-    )
+    } else {
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            title = { Text(stringResource(R.string.edit_event)) },
+            text = {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    TimePicker(state = timePickerState)
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        datePickerState.selectedDateMillis?.let { dateMs ->
+                            // DatePicker stores dates as midnight UTC; extract the UTC date
+                            // then apply the user-selected local time
+                            val selectedDate = Instant.ofEpochMilli(dateMs)
+                                .atZone(ZoneId.of("UTC"))
+                                .toLocalDate()
+                            val newTimestamp = selectedDate
+                                .atTime(timePickerState.hour, timePickerState.minute)
+                                .atZone(ZoneId.systemDefault())
+                                .toInstant()
+                                .toEpochMilli()
+                            onSave(newTimestamp)
+                        }
+                    }
+                ) {
+                    Text(stringResource(R.string.save))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showTimePicker = false }) {
+                    Text(stringResource(R.string.back))
+                }
+            }
+        )
+    }
 }
 
 private fun formatTimestamp(timestamp: Long): String {
