@@ -22,7 +22,7 @@ class EventLogViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private val trackerId: Long = savedStateHandle.get<String>("trackerId")?.toLongOrNull() ?: 0L
+    private val trackerId: Long = savedStateHandle.get<Long>("trackerId") ?: 0L
 
     val eventsPager: Flow<PagingData<WifiEvent>> = Pager(
         config = PagingConfig(

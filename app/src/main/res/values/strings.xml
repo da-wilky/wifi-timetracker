@@ -41,4 +41,7 @@
     <string name="grant_permissions">Grant Permissions</string>
     <string name="notification_channel_name">WiFi Tracking</string>
     <string name="notification_channel_description">Tracks WiFi network connections</string>
+    <string name="notification_stop_action">Stop</string>
+    <string name="confirm_stop_tracking_title">Stop WiFi Tracking</string>
+    <string name="confirm_stop_tracking_message">Stop tracking completely and remove the background service?</string>
 </resources>

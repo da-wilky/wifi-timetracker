@@ -5,49 +5,58 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- Clock circle -->
+    <!-- Clock face outer ring (center at 54,34; radius 18) -->
     <path
-        android:fillColor="#757575"
-        android:pathData="M54,36 A18,18 0 1,1 53.99,36 Z"/>
+        android:fillColor="#1565C0"
+        android:pathData="M54,16 A18,18 0 1,1 53.99,16 Z"/>
 
-    <!-- Clock center white -->
+    <!-- Clock face inner (white fill) -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M54,38 A16,16 0 1,1 53.99,38 Z"/>
+        android:pathData="M54,19 A15,15 0 1,1 53.99,19 Z"/>
 
-    <!-- Clock hour hand -->
+    <!-- Hour hand: from center (54,34) toward ~10 o'clock position -->
     <path
-        android:fillColor="#757575"
-        android:pathData="M54,54 L54,46 L55.5,46 L55.5,54 Z"/>
+        android:fillColor="#1565C0"
+        android:pathData="M53,34 L49,25 L55,25 L55,34 Z"/>
 
-    <!-- Clock minute hand -->
+    <!-- Minute hand: from center (54,34) toward ~2 o'clock position -->
     <path
-        android:fillColor="#757575"
-        android:pathData="M54,54 L60,51 L60,52.5 L54,55 Z"/>
+        android:fillColor="#1565C0"
+        android:pathData="M54,34 L62,28 L63,30 L55,35 Z"/>
 
-    <!-- WiFi waves (bottom arc - smallest) -->
+    <!-- Center dot of clock -->
     <path
-        android:strokeColor="#2196F3"
-        android:strokeWidth="3"
+        android:fillColor="#1565C0"
+        android:pathData="M54,34 A2,2 0 1,1 53.99,34 Z"/>
+
+    <!-- WiFi dot (base point at 54,86) -->
+    <path
+        android:fillColor="#1976D2"
+        android:pathData="M54,86 A3,3 0 1,1 53.99,86 Z"/>
+
+    <!-- WiFi arc - innermost (radius ~9, apex at y~77) -->
+    <path
+        android:strokeColor="#1976D2"
+        android:strokeWidth="3.5"
         android:fillColor="#00000000"
-        android:pathData="M44,58 Q54,52 64,58"/>
+        android:strokeLineCap="round"
+        android:pathData="M45,77 A13,13 0 0,1 63,77"/>
 
-    <!-- WiFi waves (middle arc) -->
+    <!-- WiFi arc - middle (radius ~17, apex at y~68) -->
     <path
-        android:strokeColor="#2196F3"
-        android:strokeWidth="3"
+        android:strokeColor="#42A5F5"
+        android:strokeWidth="3.5"
         android:fillColor="#00000000"
-        android:pathData="M38,64 Q54,52 70,64"/>
+        android:strokeLineCap="round"
+        android:pathData="M37,68 A24,24 0 0,1 71,68"/>
 
-    <!-- WiFi waves (top arc - largest) -->
+    <!-- WiFi arc - outermost (radius ~25, apex at y~59) -->
     <path
-        android:strokeColor="#2196F3"
-        android:strokeWidth="3"
+        android:strokeColor="#90CAF9"
+        android:strokeWidth="3.5"
         android:fillColor="#00000000"
-        android:pathData="M32,70 Q54,52 76,70"/>
+        android:strokeLineCap="round"
+        android:pathData="M29,59 A35,35 0 0,1 79,59"/>
 
-    <!-- WiFi dot at bottom -->
-    <path
-        android:fillColor="#2196F3"
-        android:pathData="M54,76 A2,2 0 1,1 53.99,76 Z"/>
 </vector>

@@ -35,29 +35,34 @@ class TrackersViewModel @Inject constructor(
 
     private val trackerTimeCache = mutableMapOf<Long, StateFlow<TrackerTimeCache>>()
 
-    fun getTrackerTime(trackerId: Long): StateFlow<Long> {
-        // Get or create cache for this tracker
-        val cacheFlow = trackerTimeCache.getOrPut(trackerId) {
-            combine(
-                selectedFilter,
-                eventRepository.getEventsByTrackerFlow(trackerId)
-            ) { filter, _ ->
-                // Only query DB when filter or events change
-                calculateStoredTimeAndLastConnect(trackerId, filter)
-            }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), TrackerTimeCache(0L, null))
-        }
+    // Cache for the final display-time StateFlow so recompositions don't recreate it
+    private val trackerDisplayTimeCache = mutableMapOf<Long, StateFlow<Long>>()
 
-        // Combine cached data with timer for real-time updates
-        return combine(
-            cacheFlow,
-            flow { while(true) { emit(System.currentTimeMillis()); delay(1000) } }
-        ) { cache, currentTime ->
-            cache.lastConnectTimestamp?.let { lastConnect ->
-                cache.storedTime + (currentTime - lastConnect)
-            } ?: cache.storedTime
+    fun getTrackerTime(trackerId: Long): StateFlow<Long> {
+        return trackerDisplayTimeCache.getOrPut(trackerId) {
+            // Get or create inner cache for this tracker
+            val cacheFlow = trackerTimeCache.getOrPut(trackerId) {
+                combine(
+                    selectedFilter,
+                    eventRepository.getEventsByTrackerFlow(trackerId)
+                ) { filter, _ ->
+                    // Only query DB when filter or events change
+                    calculateStoredTimeAndLastConnect(trackerId, filter)
+                }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), TrackerTimeCache(0L, null))
+            }
+
+            // Combine cached data with timer for real-time updates
+            combine(
+                cacheFlow,
+                flow { while(true) { emit(System.currentTimeMillis()); delay(1000) } }
+            ) { cache, currentTime ->
+                cache.lastConnectTimestamp?.let { lastConnect ->
+                    cache.storedTime + (currentTime - lastConnect)
+                } ?: cache.storedTime
+            }
+                .distinctUntilChanged()
+                .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0L)
         }
-            .distinctUntilChanged()
-            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0L)
     }
 
     private suspend fun calculateStoredTimeAndLastConnect(
