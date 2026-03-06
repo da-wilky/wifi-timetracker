@@ -9,6 +9,7 @@ import android.net.wifi.WifiInfo
 import androidx.core.content.ContextCompat
 import com.wifitracker.data.local.dao.EventDao
 import com.wifitracker.data.local.entity.EventEntity
+import com.wifitracker.data.repository.BssidRepository
 import com.wifitracker.data.repository.TrackerRepository
 import com.wifitracker.service.WifiTrackingService
 import dagger.hilt.android.HiltAndroidApp
@@ -23,6 +24,9 @@ class WifiTrackerApplication : Application() {
 
     @Inject
     lateinit var trackerRepository: TrackerRepository
+
+    @Inject
+    lateinit var bssidRepository: BssidRepository
 
     @Inject
     lateinit var eventDao: EventDao
@@ -79,7 +83,7 @@ class WifiTrackerApplication : Application() {
                     if (ssid != "<unknown ssid>") {
                         val bssid = wifiInfo.bssid
 
-                        val tracker = trackerRepository.findMatchingTracker(ssid, bssid)
+                        val tracker = trackerRepository.findMatchingTracker(ssid)
 
                         if (tracker != null) {
                             eventDao.insert(
@@ -89,6 +93,9 @@ class WifiTrackerApplication : Application() {
                                     timestamp = currentTime
                                 )
                             )
+                            if (bssid != null) {
+                                bssidRepository.recordBssid(tracker.id, bssid, currentTime)
+                            }
                         }
                     }
                 }
