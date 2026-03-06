@@ -1,6 +1,5 @@
 package com.wifitracker
 
-import android.app.ActivityManager
 import android.app.Application
 import android.content.Context
 import android.content.Intent
@@ -41,7 +40,7 @@ class WifiTrackerApplication : Application() {
     }
 
     private suspend fun performCrashRecovery() {
-        val isServiceRunning = isServiceRunning(WifiTrackingService::class.java)
+        val isServiceRunning = isServiceRunning()
 
         if (!isServiceRunning) {
             // Close orphaned CONNECT events
@@ -94,10 +93,18 @@ class WifiTrackerApplication : Application() {
                     }
                 }
             }
+
+            // Re-start the foreground service if trackers exist so that ongoing monitoring
+            // resumes after a crash or system-initiated process death.
+            val hasTrackers = trackerRepository.getAllSnapshot().isNotEmpty()
+            if (hasTrackers) {
+                val serviceIntent = Intent(this@WifiTrackerApplication, WifiTrackingService::class.java)
+                ContextCompat.startForegroundService(this@WifiTrackerApplication, serviceIntent)
+            }
         }
     }
 
-    private fun isServiceRunning(serviceClass: Class<*>): Boolean {
+    private fun isServiceRunning(): Boolean {
         // Use SharedPreferences to track service state instead of deprecated API
         return getSharedPreferences("wifi_tracker_prefs", Context.MODE_PRIVATE)
             .getBoolean("service_running", false)

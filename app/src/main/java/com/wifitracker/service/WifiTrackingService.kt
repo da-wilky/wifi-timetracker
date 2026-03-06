@@ -5,6 +5,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
 import android.content.Intent
+import android.content.pm.ServiceInfo
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import com.wifitracker.R
@@ -50,54 +51,84 @@ class WifiTrackingService : Service() {
             .apply()
 
         createNotificationChannel()
-        startForeground(NOTIFICATION_ID, createNotification(null))
+        // On API 34+ the foreground service type must be passed to startForeground();
+        // omitting it throws MissingForegroundServiceTypeException and crashes the service.
+        startForeground(
+            NOTIFICATION_ID,
+            createNotification(null),
+            ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE
+        )
 
         serviceScope.launch {
-            wifiMonitor.observeWifiNetwork().collect { networkInfo ->
+            wifiMonitor.observeWifiNetwork().collect { state ->
                 networkChangeMutex.withLock {
-                    handleNetworkChange(networkInfo)
+                    handleNetworkChange(state)
                 }
             }
         }
     }
 
-    private suspend fun handleNetworkChange(networkInfo: WifiNetworkInfo?) {
-        val newSsid = networkInfo?.ssid
-        val newBssid = networkInfo?.bssid
-
-        if (newSsid != currentSsid || newBssid != currentBssid) {
-            // Disconnect event
-            if (currentSsid != null && currentTrackerId != null) {
-                eventDao.insert(
-                    EventEntity(
-                        trackerId = currentTrackerId!!,
-                        eventType = "DISCONNECT",
-                        timestamp = System.currentTimeMillis()
-                    )
-                )
+    private suspend fun handleNetworkChange(state: WifiNetworkState) {
+        when (state) {
+            is WifiNetworkState.SsidUnavailable -> {
+                // Location Services are off – the device may still be connected to the same
+                // network.  Do not record a spurious DISCONNECT; just return.
+                return
             }
 
-            // Connect event
-            currentSsid = newSsid
-            currentBssid = newBssid
-            currentTrackerId = null
-
-            if (newSsid != null) {
-                val tracker = trackerRepository.findMatchingTracker(newSsid, newBssid)
-
-                if (tracker != null) {
-                    currentTrackerId = tracker.id
+            is WifiNetworkState.Disconnected -> {
+                val trackerId = currentTrackerId
+                if (currentSsid != null && trackerId != null) {
                     eventDao.insert(
                         EventEntity(
-                            trackerId = tracker.id,
-                            eventType = "CONNECT",
+                            trackerId = trackerId,
+                            eventType = "DISCONNECT",
                             timestamp = System.currentTimeMillis()
                         )
                     )
                 }
+                currentSsid = null
+                currentBssid = null
+                currentTrackerId = null
+                updateNotification(null)
             }
 
-            updateNotification(newSsid)
+            is WifiNetworkState.Connected -> {
+                val newSsid = state.ssid
+                val newBssid = state.bssid
+
+                if (newSsid != currentSsid || newBssid != currentBssid) {
+                    // Record DISCONNECT from the previous network if applicable
+                    val prevTrackerId = currentTrackerId
+                    if (currentSsid != null && prevTrackerId != null) {
+                        eventDao.insert(
+                            EventEntity(
+                                trackerId = prevTrackerId,
+                                eventType = "DISCONNECT",
+                                timestamp = System.currentTimeMillis()
+                            )
+                        )
+                    }
+
+                    currentSsid = newSsid
+                    currentBssid = newBssid
+                    currentTrackerId = null
+
+                    val tracker = trackerRepository.findMatchingTracker(newSsid, newBssid)
+                    if (tracker != null) {
+                        currentTrackerId = tracker.id
+                        eventDao.insert(
+                            EventEntity(
+                                trackerId = tracker.id,
+                                eventType = "CONNECT",
+                                timestamp = System.currentTimeMillis()
+                            )
+                        )
+                    }
+
+                    updateNotification(newSsid)
+                }
+            }
         }
     }
 
@@ -125,6 +156,8 @@ class WifiTrackingService : Service() {
             .setContentText(text)
             .setSmallIcon(R.drawable.ic_notification)
             .setPriority(NotificationCompat.PRIORITY_LOW)
+            // Prevent the user from dismissing the foreground-service notification
+            .setOngoing(true)
             .build()
     }
 

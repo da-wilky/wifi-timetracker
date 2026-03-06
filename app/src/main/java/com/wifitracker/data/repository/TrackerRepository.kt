@@ -24,6 +24,10 @@ class TrackerRepository @Inject constructor(
         trackerDao.delete(tracker.toEntity())
     }
 
+    suspend fun getAllSnapshot(): List<Tracker> {
+        return trackerDao.getAllSnapshot().map { it.toDomain() }
+    }
+
     suspend fun findMatchingTracker(ssid: String, bssid: String?): Tracker? {
         return trackerDao.findMatchingTracker(ssid, bssid)?.toDomain()
     }
