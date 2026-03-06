@@ -29,13 +29,15 @@ class EventLogViewModel @Inject constructor(
 
     private val trackerId: Long = savedStateHandle.get<Long>("trackerId") ?: 0L
 
+    private var pagingSource: EventLogPagingSource? = null
+
     val eventsPager: Flow<PagingData<WifiEvent>> = Pager(
         config = PagingConfig(
             pageSize = 20,
             enablePlaceholders = false
         )
     ) {
-        EventLogPagingSource(eventDao, trackerId)
+        EventLogPagingSource(eventDao, trackerId).also { pagingSource = it }
     }.flow.cachedIn(viewModelScope)
 
     private val _recentSessions = MutableStateFlow<List<WifiEvent>>(emptyList())
@@ -68,6 +70,7 @@ class EventLogViewModel @Inject constructor(
         viewModelScope.launch {
             eventDao.updateEvent(eventId, newTimestamp)
             loadRecentSessions()
+            pagingSource?.invalidate()
         }
     }
 }

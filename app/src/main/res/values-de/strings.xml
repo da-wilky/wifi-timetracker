@@ -49,6 +49,11 @@
     <string name="confirm_stop_tracking_title">WLAN-Verfolgung beenden</string>
     <string name="confirm_stop_tracking_message">Verfolgung vollständig beenden und Hintergrunddienst entfernen?</string>
     <string name="start_tracking">Tracking starten</string>
+    <string name="enable_edit_mode">Bearbeiten</string>
+    <string name="view_only_mode">Nur anzeigen</string>
+    <string name="edit_time_after_min">Zeit muss nach %s liegen</string>
+    <string name="edit_time_before_max">Zeit muss vor %s liegen</string>
+    <string name="edit_time_between">Zeit muss zwischen %1$s und %2$s liegen</string>
     <string name="currently_connected_label">Aktuell verbunden</string>
     <string name="not_connected_hint">Nicht mit einem WLAN-Netzwerk verbunden</string>
 </resources>

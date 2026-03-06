@@ -34,6 +34,7 @@ fun EventLogScreen(
     val recentSessions by viewModel.recentSessions.collectAsState()
     val bssidRecords by viewModel.bssidRecords.collectAsState()
     var editingEvent by remember { mutableStateOf<WifiEvent?>(null) }
+    var isEditMode by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -44,6 +45,16 @@ fun EventLogScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back"
+                        )
+                    }
+                },
+                actions = {
+                    TextButton(onClick = { isEditMode = !isEditMode }) {
+                        Text(
+                            if (isEditMode)
+                                stringResource(R.string.view_only_mode)
+                            else
+                                stringResource(R.string.enable_edit_mode)
                         )
                     }
                 }
@@ -85,6 +96,7 @@ fun EventLogScreen(
                 items(recentSessions.take(4)) { event ->
                     EventItem(
                         event = event,
+                        isEditMode = isEditMode,
                         onEdit = { editingEvent = event }
                     )
                 }
@@ -103,6 +115,7 @@ fun EventLogScreen(
                 eventsPager[index]?.let { event ->
                     EventItem(
                         event = event,
+                        isEditMode = isEditMode,
                         onEdit = { editingEvent = event }
                     )
                 }
@@ -142,6 +155,7 @@ fun BssidItem(record: BssidRecord) {
 @Composable
 fun EventItem(
     event: WifiEvent,
+    isEditMode: Boolean,
     onEdit: () -> Unit
 ) {
     Card(
@@ -170,7 +184,7 @@ fun EventItem(
                 )
             }
 
-            if (event.isEditable) {
+            if (event.isEditable && isEditMode) {
                 IconButton(onClick = onEdit) {
                     Icon(
                         imageVector = Icons.Default.Edit,
@@ -191,6 +205,19 @@ fun EventEditDialog(
 ) {
     val initialZoned = Instant.ofEpochMilli(event.timestamp).atZone(ZoneId.systemDefault())
     var showTimePicker by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    val afterMinLabel = event.minTimestamp?.let { formatTimestamp(it) }
+    val beforeMaxLabel = event.maxTimestamp?.let { formatTimestamp(it) }
+    val constraintLabel = when {
+        afterMinLabel != null && beforeMaxLabel != null ->
+            stringResource(R.string.edit_time_between, afterMinLabel, beforeMaxLabel)
+        afterMinLabel != null ->
+            stringResource(R.string.edit_time_after_min, afterMinLabel)
+        beforeMaxLabel != null ->
+            stringResource(R.string.edit_time_before_max, beforeMaxLabel)
+        else -> null
+    }
 
     // Use Monday-first locale so the calendar week always starts on Monday
     val datePickerState = remember {
@@ -212,7 +239,10 @@ fun EventEditDialog(
             onDismissRequest = onDismiss,
             confirmButton = {
                 TextButton(
-                    onClick = { showTimePicker = true },
+                    onClick = {
+                        errorMessage = null
+                        showTimePicker = true
+                    },
                     enabled = datePickerState.selectedDateMillis != null
                 ) {
                     Text(stringResource(R.string.next))
@@ -236,6 +266,14 @@ fun EventEditDialog(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     TimePicker(state = timePickerState)
+                    errorMessage?.let { msg ->
+                        Text(
+                            text = msg,
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(top = 8.dp)
+                        )
+                    }
                 }
             },
             confirmButton = {
@@ -252,7 +290,15 @@ fun EventEditDialog(
                                 .atZone(ZoneId.systemDefault())
                                 .toInstant()
                                 .toEpochMilli()
-                            onSave(newTimestamp)
+
+                            val isAfterMinimum = event.minTimestamp == null || newTimestamp > event.minTimestamp
+                            val isBeforeMaximum = event.maxTimestamp == null || newTimestamp < event.maxTimestamp
+
+                            if (isAfterMinimum && isBeforeMaximum) {
+                                onSave(newTimestamp)
+                            } else {
+                                errorMessage = constraintLabel
+                            }
                         }
                     }
                 ) {
@@ -260,7 +306,10 @@ fun EventEditDialog(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showTimePicker = false }) {
+                TextButton(onClick = {
+                    showTimePicker = false
+                    errorMessage = null
+                }) {
                     Text(stringResource(R.string.back))
                 }
             }
