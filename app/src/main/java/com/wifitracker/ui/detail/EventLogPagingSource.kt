@@ -29,15 +29,18 @@ class EventLogPagingSource(
             when (result) {
                 is LoadResult.Page -> {
                     val events = result.data.mapIndexed { index, entity ->
-                        // Determine if editable based on pairing
-                        val isEditable = if (entity.eventType == "CONNECT") {
-                            // Check if next event is DISCONNECT
+                        // Determine if editable: only completed sessions (CONNECT + DISCONNECT pairs)
+                        // Events are ordered DESC, so DISCONNECT comes before its CONNECT
+                        val isEditable = if (entity.eventType == "DISCONNECT") {
+                            // DISCONNECT is editable if next event (earlier time) is CONNECT
                             val nextIndex = index + 1
-                            nextIndex < result.data.size && result.data[nextIndex].eventType == "DISCONNECT"
-                        } else {
-                            // DISCONNECT is editable if previous is CONNECT
+                            nextIndex < result.data.size && result.data[nextIndex].eventType == "CONNECT"
+                        } else if (entity.eventType == "CONNECT") {
+                            // CONNECT is editable if previous event (later time) is DISCONNECT
                             val prevIndex = index - 1
-                            prevIndex >= 0 && result.data[prevIndex].eventType == "CONNECT"
+                            prevIndex >= 0 && result.data[prevIndex].eventType == "DISCONNECT"
+                        } else {
+                            false
                         }
 
                         WifiEvent(

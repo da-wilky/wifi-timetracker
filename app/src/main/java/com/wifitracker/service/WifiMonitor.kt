@@ -32,10 +32,16 @@ class WifiMonitor @Inject constructor(
             ) {
                 val wifiInfo = networkCapabilities.transportInfo as? WifiInfo
                 val info = wifiInfo?.let {
-                    WifiNetworkInfo(
-                        ssid = it.ssid.removeSurrounding("\""),
-                        bssid = it.bssid
-                    )
+                    val parsedSsid = it.ssid.removeSurrounding("\"")
+                    // Android returns "<unknown ssid>" when SSID is unavailable
+                    if (parsedSsid == "<unknown ssid>") {
+                        null
+                    } else {
+                        WifiNetworkInfo(
+                            ssid = parsedSsid,
+                            bssid = it.bssid
+                        )
+                    }
                 }
                 trySend(info)
             }

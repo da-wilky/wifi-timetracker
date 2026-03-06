@@ -59,9 +59,13 @@ dependencies {
     implementation(libs.androidx.hilt.navigation.compose)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.accompanist.permissions)
+    implementation(libs.androidx.work.runtime.ktx)
 
     ksp(libs.androidx.room.compiler)
     ksp(libs.hilt.compiler)
+
+    testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
 
     debugImplementation(libs.androidx.compose.ui.tooling)
 }

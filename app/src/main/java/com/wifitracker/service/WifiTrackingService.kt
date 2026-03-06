@@ -16,8 +16,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -36,15 +38,25 @@ class WifiTrackingService : Service() {
     private var currentSsid: String? = null
     private var currentBssid: String? = null
     private var currentTrackerId: Long? = null
+    private val networkChangeMutex = Mutex()
 
     override fun onCreate() {
         super.onCreate()
+
+        // Mark service as running
+        getSharedPreferences("wifi_tracker_prefs", MODE_PRIVATE)
+            .edit()
+            .putBoolean("service_running", true)
+            .apply()
+
         createNotificationChannel()
         startForeground(NOTIFICATION_ID, createNotification(null))
 
         serviceScope.launch {
-            wifiMonitor.observeWifiNetwork().collectLatest { networkInfo ->
-                handleNetworkChange(networkInfo)
+            wifiMonitor.observeWifiNetwork().collect { networkInfo ->
+                networkChangeMutex.withLock {
+                    handleNetworkChange(networkInfo)
+                }
             }
         }
     }
@@ -122,10 +134,22 @@ class WifiTrackingService : Service() {
         manager.notify(NOTIFICATION_ID, notification)
     }
 
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        // Return START_STICKY to ensure Android restarts the service after process death
+        return START_STICKY
+    }
+
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onDestroy() {
         super.onDestroy()
+
+        // Mark service as stopped
+        getSharedPreferences("wifi_tracker_prefs", MODE_PRIVATE)
+            .edit()
+            .putBoolean("service_running", false)
+            .apply()
+
         serviceScope.cancel()
     }
 

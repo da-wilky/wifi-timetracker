@@ -43,20 +43,22 @@ interface EventDao {
     ): List<EventEntity>
 
     @Query("""
-        SELECT e.* FROM events e
-        WHERE e.eventType = 'CONNECT'
-        AND NOT EXISTS (
-            SELECT 1 FROM events e2
-            WHERE e2.trackerId = e.trackerId
-            AND e2.eventType = 'DISCONNECT'
-            AND e2.timestamp > e.timestamp
-            AND NOT EXISTS (
-                SELECT 1 FROM events e3
-                WHERE e3.trackerId = e.trackerId
-                AND e3.eventType = 'CONNECT'
-                AND e3.timestamp > e.timestamp
-                AND e3.timestamp < e2.timestamp
+        SELECT e1.* FROM events e1
+        WHERE e1.eventType = 'CONNECT'
+        AND (
+            NOT EXISTS (
+                SELECT 1 FROM events e2
+                WHERE e2.trackerId = e1.trackerId
+                AND e2.timestamp > e1.timestamp
             )
+            OR
+            (
+                SELECT e2.eventType FROM events e2
+                WHERE e2.trackerId = e1.trackerId
+                AND e2.timestamp > e1.timestamp
+                ORDER BY e2.timestamp ASC
+                LIMIT 1
+            ) = 'CONNECT'
         )
     """)
     suspend fun findOpenConnects(): List<EventEntity>

@@ -44,10 +44,21 @@ class HomeViewModel @Inject constructor(
         trackers.any { it.ssid == ssid && (it.bssid == null || it.bssid == bssid) }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
-    val showOrphanedWarning: StateFlow<Boolean> = MutableStateFlow(
+    private val _showOrphanedWarning = MutableStateFlow(
         context.getSharedPreferences("wifi_tracker_prefs", Context.MODE_PRIVATE)
             .getBoolean("show_warning", false)
-    ).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+    )
+    val showOrphanedWarning: StateFlow<Boolean> = _showOrphanedWarning.asStateFlow()
+
+    private val _firstTrackerId = MutableStateFlow<Long?>(null)
+
+    init {
+        viewModelScope.launch {
+            trackerRepository.getAll().collect { trackers ->
+                _firstTrackerId.value = trackers.firstOrNull()?.id
+            }
+        }
+    }
 
     fun createTracker() {
         viewModelScope.launch {
@@ -83,5 +94,8 @@ class HomeViewModel @Inject constructor(
             .edit()
             .putBoolean("show_warning", false)
             .apply()
+        _showOrphanedWarning.value = false
     }
+
+    fun getFirstTrackerId(): Long? = _firstTrackerId.value
 }

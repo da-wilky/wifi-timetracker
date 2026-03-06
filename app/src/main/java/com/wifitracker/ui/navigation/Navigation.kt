@@ -69,11 +69,13 @@ fun BottomNavigationBar(
 
 @Composable
 fun AppNavHost(
-    navController: NavHostController
+    navController: NavHostController,
+    modifier: androidx.compose.ui.Modifier = androidx.compose.ui.Modifier
 ) {
     NavHost(
         navController = navController,
-        startDestination = Screen.Home.route
+        startDestination = Screen.Home.route,
+        modifier = modifier
     ) {
         composable(Screen.Home.route) {
             HomeScreen(

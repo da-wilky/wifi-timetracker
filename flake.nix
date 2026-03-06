@@ -53,55 +53,7 @@ rec {
 
         meta.mainProgram = "zeroshot";
       };
-
-      apk = pkgs.stdenv.mkDerivation {
-        pname = "wifi-timetracker";
-        version = "1.0";
-
-        src = ./.;
-
-        nativeBuildInputs = with pkgs; [
-          jdk17
-          gradle
-        ];
-
-        ANDROID_HOME = "${androidSdk}/libexec/android-sdk";
-        ANDROID_SDK_ROOT = "${androidSdk}/libexec/android-sdk";
-        JAVA_HOME = "${pkgs.jdk17}";
-        GRADLE_USER_HOME = ".gradle-home";
-
-        buildPhase = ''
-          runHook preBuild
-
-          export HOME=$(pwd)
-          mkdir -p $GRADLE_USER_HOME
-
-          gradle --no-daemon assembleRelease
-
-          runHook postBuild
-        '';
-
-        installPhase = ''
-          runHook preInstall
-
-          mkdir -p $out
-          cp app/build/outputs/apk/release/*.apk $out/
-
-          runHook postInstall
-        '';
-
-        meta = {
-          description = "WiFi TimeTracker Android App";
-          platforms = [ "x86_64-linux" ];
-        };
-      };
-
     in {
-      packages.x86_64-linux = {
-        inherit apk;
-        default = apk;
-      };
-
       devShells.x86_64-linux.default = pkgs.mkShell {
         packages = with pkgs; [
           jdk17

@@ -71,7 +71,12 @@ fun HomeScreen(
                             TextButton(onClick = { viewModel.dismissOrphanedWarning() }) {
                                 Text(stringResource(R.string.cancel))
                             }
-                            Button(onClick = { /* Navigate to first tracker */ }) {
+                            Button(onClick = {
+                                viewModel.getFirstTrackerId()?.let { trackerId ->
+                                    onNavigateToEventLog(trackerId)
+                                }
+                                viewModel.dismissOrphanedWarning()
+                            }) {
                                 Text(stringResource(R.string.view_events))
                             }
                         }

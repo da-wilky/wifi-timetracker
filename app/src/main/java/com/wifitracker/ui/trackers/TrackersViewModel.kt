@@ -27,16 +27,43 @@ class TrackersViewModel @Inject constructor(
     private val _selectedFilter = MutableStateFlow<DateFilter>(DateFilter.All)
     val selectedFilter: StateFlow<DateFilter> = _selectedFilter.asStateFlow()
 
+    // Cache for tracker time calculation
+    private data class TrackerTimeCache(
+        val storedTime: Long,
+        val lastConnectTimestamp: Long?
+    )
+
+    private val trackerTimeCache = mutableMapOf<Long, StateFlow<TrackerTimeCache>>()
+
     fun getTrackerTime(trackerId: Long): StateFlow<Long> {
+        // Get or create cache for this tracker
+        val cacheFlow = trackerTimeCache.getOrPut(trackerId) {
+            combine(
+                selectedFilter,
+                eventRepository.getEventsByTrackerFlow(trackerId)
+            ) { filter, _ ->
+                // Only query DB when filter or events change
+                calculateStoredTimeAndLastConnect(trackerId, filter)
+            }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), TrackerTimeCache(0L, null))
+        }
+
+        // Combine cached data with timer for real-time updates
         return combine(
-            selectedFilter,
+            cacheFlow,
             flow { while(true) { emit(System.currentTimeMillis()); delay(1000) } }
-        ) { filter, _ ->
-            calculateTrackerTime(trackerId, filter)
-        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0L)
+        ) { cache, currentTime ->
+            cache.lastConnectTimestamp?.let { lastConnect ->
+                cache.storedTime + (currentTime - lastConnect)
+            } ?: cache.storedTime
+        }
+            .distinctUntilChanged()
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0L)
     }
 
-    private suspend fun calculateTrackerTime(trackerId: Long, filter: DateFilter): Long {
+    private suspend fun calculateStoredTimeAndLastConnect(
+        trackerId: Long,
+        filter: DateFilter
+    ): TrackerTimeCache {
         val (start, end) = DateFilterCalculator.calculateRange(filter)
         val events = eventRepository.getEventsByTrackerAndDateRange(trackerId, start, end)
             .sortedBy { it.timestamp }
@@ -56,12 +83,7 @@ class TrackersViewModel @Inject constructor(
             }
         }
 
-        // Add ongoing session time
-        lastConnect?.let {
-            totalTime += (System.currentTimeMillis() - it)
-        }
-
-        return totalTime
+        return TrackerTimeCache(totalTime, lastConnect)
     }
 
     fun setFilter(filter: DateFilter) {

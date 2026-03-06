@@ -36,9 +36,10 @@ class MainActivity : ComponentActivity() {
                             BottomNavigationBar(navController = navController)
                         }
                     }
-                ) { _ ->
+                ) { paddingValues ->
                     AppNavHost(
-                        navController = navController
+                        navController = navController,
+                        modifier = Modifier.padding(paddingValues)
                     )
                 }
             }

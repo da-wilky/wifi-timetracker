@@ -76,18 +76,21 @@ class WifiTrackerApplication : Application() {
                 val wifiInfo = capabilities.transportInfo as? WifiInfo
                 if (wifiInfo != null) {
                     val ssid = wifiInfo.ssid.removeSurrounding("\"")
-                    val bssid = wifiInfo.bssid
+                    // Skip processing if Android returns the sentinel value
+                    if (ssid != "<unknown ssid>") {
+                        val bssid = wifiInfo.bssid
 
-                    val tracker = trackerRepository.findMatchingTracker(ssid, bssid)
+                        val tracker = trackerRepository.findMatchingTracker(ssid, bssid)
 
-                    if (tracker != null) {
-                        eventDao.insert(
-                            EventEntity(
-                                trackerId = tracker.id,
-                                eventType = "CONNECT",
-                                timestamp = currentTime
+                        if (tracker != null) {
+                            eventDao.insert(
+                                EventEntity(
+                                    trackerId = tracker.id,
+                                    eventType = "CONNECT",
+                                    timestamp = currentTime
+                                )
                             )
-                        )
+                        }
                     }
                 }
             }
@@ -95,13 +98,8 @@ class WifiTrackerApplication : Application() {
     }
 
     private fun isServiceRunning(serviceClass: Class<*>): Boolean {
-        val manager = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
-        @Suppress("DEPRECATION")
-        for (service in manager.getRunningServices(Int.MAX_VALUE)) {
-            if (serviceClass.name == service.service.className) {
-                return true
-            }
-        }
-        return false
+        // Use SharedPreferences to track service state instead of deprecated API
+        return getSharedPreferences("wifi_tracker_prefs", Context.MODE_PRIVATE)
+            .getBoolean("service_running", false)
     }
 }

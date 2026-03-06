@@ -24,17 +24,8 @@ class TrackerRepository @Inject constructor(
         trackerDao.delete(tracker.toEntity())
     }
 
-    suspend fun findBySSIDAndBSSID(ssid: String, bssid: String?): Tracker? {
-        return trackerDao.findBySSIDAndBSSID(ssid, bssid)?.toDomain()
-    }
-
     suspend fun findMatchingTracker(ssid: String, bssid: String?): Tracker? {
-        // Try exact BSSID match first
-        val exactMatch = trackerDao.findBySSIDAndBSSID(ssid, bssid)
-        if (exactMatch != null) return exactMatch.toDomain()
-
-        // Fallback to SSID-only match
-        return trackerDao.findBySSIDAndBSSID(ssid, null)?.toDomain()
+        return trackerDao.findMatchingTracker(ssid, bssid)?.toDomain()
     }
 
     private fun TrackerEntity.toDomain() = Tracker(
