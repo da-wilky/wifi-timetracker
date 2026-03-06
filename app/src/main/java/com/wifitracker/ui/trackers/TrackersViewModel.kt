@@ -6,6 +6,7 @@ import com.wifitracker.data.local.dao.EventDao
 import com.wifitracker.data.repository.EventRepository
 import com.wifitracker.data.repository.TrackerRepository
 import com.wifitracker.domain.model.DateFilter
+import com.wifitracker.domain.model.EventType
 import com.wifitracker.domain.model.Tracker
 import com.wifitracker.util.DateFilterCalculator
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -77,9 +78,9 @@ class TrackersViewModel @Inject constructor(
         var lastConnect: Long? = null
 
         for (event in events) {
-            when (event.eventType.name) {
-                "CONNECT" -> lastConnect = event.timestamp
-                "DISCONNECT" -> {
+            when (event.eventType) {
+                EventType.CONNECT -> lastConnect = event.timestamp
+                EventType.DISCONNECT -> {
                     lastConnect?.let {
                         totalTime += (event.timestamp - it)
                     }
