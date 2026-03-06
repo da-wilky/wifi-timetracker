@@ -37,7 +37,16 @@ class HomeViewModel @Inject constructor(
     wifiMonitor: WifiMonitor
 ) : ViewModel() {
 
-    private val _wifiState = wifiMonitor.observeWifiNetwork()
+    // Incrementing this trigger causes flatMapLatest to cancel the current callbackFlow and
+    // start a fresh one, re-registering the NetworkCallback. This is necessary because
+    // Android only delivers onCapabilitiesChanged once per network state change — if the
+    // first delivery happened before NEARBY_WIFI_DEVICES was granted, the SSID was redacted
+    // and no further callback is ever sent. Re-registering after the permission is in place
+    // forces a new onAvailable / onCapabilitiesChanged cycle with the real SSID.
+    private val _wifiObservationRestartTrigger = MutableStateFlow(0)
+
+    private val _wifiState = _wifiObservationRestartTrigger
+        .flatMapLatest { wifiMonitor.observeWifiNetwork() }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), WifiNetworkState.Disconnected)
 
     val currentSsid: StateFlow<String?> = _wifiState.map {
@@ -140,6 +149,21 @@ class HomeViewModel @Inject constructor(
 
     fun setFilter(filter: DateFilter) {
         _selectedFilter.value = filter
+    }
+
+    /**
+     * Re-registers the WiFi network callback so that [onCapabilitiesChanged] fires again with
+     * the newly-granted [android.Manifest.permission.NEARBY_WIFI_DEVICES] permission in place.
+     * Call this from the UI whenever all required permissions have been granted.
+     *
+     * Skips the restart when we already have a [WifiNetworkState.Connected] state — that means
+     * the callback already ran successfully (e.g. after a configuration change), so there is
+     * nothing to fix.
+     */
+    fun onPermissionsGranted() {
+        if (_wifiState.value is WifiNetworkState.Connected) return
+        // update {} uses compareAndSet internally, making this safe if called from multiple coroutines.
+        _wifiObservationRestartTrigger.update { it + 1 }
     }
 
     suspend fun refresh() {

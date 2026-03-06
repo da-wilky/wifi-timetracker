@@ -55,6 +55,17 @@ fun HomeScreen(
         }
     }
 
+    // Whenever the required permissions are newly granted, re-register the WiFi network
+    // callback so that onCapabilitiesChanged fires again with the permission in place and
+    // Android returns the real SSID instead of the "<unknown ssid>" sentinel.
+    // The `if` guard is necessary: LaunchedEffect(key) fires on first composition regardless
+    // of the key's value, so we must explicitly check the value before acting.
+    LaunchedEffect(permissionsState.allPermissionsGranted) {
+        if (permissionsState.allPermissionsGranted) {
+            viewModel.onPermissionsGranted()
+        }
+    }
+
     // Split trackers: connected one first (if tracked), then the rest
     val connectedTracker = if (isTracked && currentSsid != null) {
         trackers.firstOrNull { it.ssid == currentSsid }
