@@ -49,6 +49,11 @@
     <string name="confirm_stop_tracking_title">Stop WiFi Tracking</string>
     <string name="confirm_stop_tracking_message">Stop tracking completely and remove the background service?</string>
     <string name="start_tracking">Start Tracking</string>
+    <string name="enable_edit_mode">Edit</string>
+    <string name="view_only_mode">View only</string>
+    <string name="edit_time_after_min">Time must be after %s</string>
+    <string name="edit_time_before_max">Time must be before %s</string>
+    <string name="edit_time_between">Time must be between %1$s and %2$s</string>
     <string name="currently_connected_label">Currently connected</string>
     <string name="not_connected_hint">Not connected to any WiFi network</string>
 </resources>

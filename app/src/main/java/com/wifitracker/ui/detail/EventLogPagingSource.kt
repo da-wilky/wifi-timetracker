@@ -31,16 +31,34 @@ class EventLogPagingSource(
                     val events = result.data.mapIndexed { index, entity ->
                         // Determine if editable: only completed sessions (CONNECT + DISCONNECT pairs)
                         // Events are ordered DESC, so DISCONNECT comes before its CONNECT
-                        val isEditable = if (entity.eventType == "DISCONNECT") {
+                        val isEditable: Boolean
+                        val minTimestamp: Long?
+                        val maxTimestamp: Long?
+
+                        if (entity.eventType == "DISCONNECT") {
                             // DISCONNECT is editable if next event (earlier time) is CONNECT
                             val nextIndex = index + 1
-                            nextIndex < result.data.size && result.data[nextIndex].eventType == "CONNECT"
+                            val pairedConnect = result.data.getOrNull(nextIndex)
+                            isEditable = pairedConnect?.eventType == "CONNECT"
+                            // New timestamp must be strictly after the paired CONNECT
+                            minTimestamp = if (isEditable) pairedConnect?.timestamp else null
+                            // New timestamp must be strictly before the event that follows this
+                            // DISCONNECT (i.e. the CONNECT of the next, more recent session)
+                            maxTimestamp = result.data.getOrNull(index - 1)?.timestamp
                         } else if (entity.eventType == "CONNECT") {
                             // CONNECT is editable if previous event (later time) is DISCONNECT
                             val prevIndex = index - 1
-                            prevIndex >= 0 && result.data[prevIndex].eventType == "DISCONNECT"
+                            val pairedDisconnect = result.data.getOrNull(prevIndex)
+                            isEditable = pairedDisconnect?.eventType == "DISCONNECT"
+                            // New timestamp must be strictly after the event that precedes this
+                            // CONNECT (i.e. the DISCONNECT of the previous, older session)
+                            minTimestamp = result.data.getOrNull(index + 1)?.timestamp
+                            // New timestamp must be strictly before the paired DISCONNECT
+                            maxTimestamp = if (isEditable) pairedDisconnect?.timestamp else null
                         } else {
-                            false
+                            isEditable = false
+                            minTimestamp = null
+                            maxTimestamp = null
                         }
 
                         WifiEvent(
@@ -48,7 +66,9 @@ class EventLogPagingSource(
                             trackerId = entity.trackerId,
                             eventType = EventType.valueOf(entity.eventType),
                             timestamp = entity.timestamp,
-                            isEditable = isEditable
+                            isEditable = isEditable,
+                            minTimestamp = minTimestamp,
+                            maxTimestamp = maxTimestamp
                         )
                     }
 

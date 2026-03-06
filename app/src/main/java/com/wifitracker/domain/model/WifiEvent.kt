@@ -5,5 +5,7 @@ data class WifiEvent(
     val trackerId: Long,
     val eventType: EventType,
     val timestamp: Long,
-    val isEditable: Boolean
+    val isEditable: Boolean,
+    val minTimestamp: Long? = null,
+    val maxTimestamp: Long? = null
 )
