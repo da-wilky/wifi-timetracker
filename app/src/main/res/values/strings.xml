@@ -26,6 +26,8 @@
     <string name="event_log">Event Log</string>
     <string name="edit_event">Edit Event</string>
     <string name="save">Save</string>
+    <string name="next">Next</string>
+    <string name="back">Back</string>
     <string name="orphaned_sessions_warning">Some tracking sessions were not properly closed. They have been automatically closed. Please review and adjust if needed.</string>
     <string name="view_events">View Events</string>
     <string name="permission_rationale">This app needs WiFi and notification permissions to track your network usage.</string>
