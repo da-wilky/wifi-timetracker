@@ -6,7 +6,7 @@ import androidx.room.PrimaryKey
 
 @Entity(
     tableName = "trackers",
-    indices = [Index(value = ["ssid", "bssid"])]
+    indices = [Index(value = ["ssid"])]
 )
 data class TrackerEntity(
     @PrimaryKey(autoGenerate = true)

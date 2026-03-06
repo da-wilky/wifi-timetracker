@@ -40,11 +40,10 @@ class HomeViewModel @Inject constructor(
 
     val isTracked: StateFlow<Boolean> = combine(
         currentSsid,
-        currentBssid,
         trackerRepository.getAll()
-    ) { ssid, bssid, trackers ->
+    ) { ssid, trackers ->
         if (ssid == null) return@combine false
-        trackers.any { it.ssid == ssid && (it.bssid == null || it.bssid == bssid) }
+        trackers.any { it.ssid == ssid }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
     private val _showOrphanedWarning = MutableStateFlow(
@@ -66,12 +65,11 @@ class HomeViewModel @Inject constructor(
     fun createTracker() {
         viewModelScope.launch {
             val ssid = currentSsid.value ?: return@launch
-            val bssid = currentBssid.value
 
             trackerDao.insert(
                 TrackerEntity(
                     ssid = ssid,
-                    bssid = bssid,
+                    bssid = null,
                     createdAt = System.currentTimeMillis()
                 )
             )

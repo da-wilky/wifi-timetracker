@@ -45,14 +45,6 @@ fun TrackerCard(
                 style = MaterialTheme.typography.titleLarge
             )
 
-            if (tracker.bssid != null) {
-                Text(
-                    text = "BSSID: ${tracker.bssid}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-
             TimerDisplay(durationMs = displayTime)
 
             Row(

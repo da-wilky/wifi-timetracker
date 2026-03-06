@@ -5,58 +5,94 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- Clock face outer ring (center at 54,34; radius 18) -->
+    <!-- Clock face outer ring -->
     <path
-        android:fillColor="#1565C0"
-        android:pathData="M54,16 A18,18 0 1,1 53.99,16 Z"/>
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="4"
+        android:fillColor="#00000000"
+        android:pathData="M54,18 A36,36 0 1,1 53.99,18 Z"/>
 
-    <!-- Clock face inner (white fill) -->
+    <!-- Clock tick at 3 o'clock -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2.5"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000"
+        android:pathData="M86,54 L82,54"/>
+
+    <!-- Clock tick at 6 o'clock -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2.5"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000"
+        android:pathData="M54,86 L54,82"/>
+
+    <!-- Clock tick at 9 o'clock -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2.5"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000"
+        android:pathData="M22,54 L26,54"/>
+
+    <!-- WiFi dot (inside clock at top, at 12 o'clock area) -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M54,19 A15,15 0 1,1 53.99,19 Z"/>
+        android:pathData="M54,38 A2.5,2.5 0 1,1 53.99,38 Z"/>
 
-    <!-- Hour hand: from center (54,34) toward ~10 o'clock position -->
+    <!-- WiFi arc - innermost -->
     <path
-        android:fillColor="#1565C0"
-        android:pathData="M53,34 L49,25 L55,25 L55,34 Z"/>
-
-    <!-- Minute hand: from center (54,34) toward ~2 o'clock position -->
-    <path
-        android:fillColor="#1565C0"
-        android:pathData="M54,34 L62,28 L63,30 L55,35 Z"/>
-
-    <!-- Center dot of clock -->
-    <path
-        android:fillColor="#1565C0"
-        android:pathData="M54,34 A2,2 0 1,1 53.99,34 Z"/>
-
-    <!-- WiFi dot (base point at 54,86) -->
-    <path
-        android:fillColor="#1976D2"
-        android:pathData="M54,86 A3,3 0 1,1 53.99,86 Z"/>
-
-    <!-- WiFi arc - innermost (radius ~9, apex at y~77) -->
-    <path
-        android:strokeColor="#1976D2"
-        android:strokeWidth="3.5"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="3"
         android:fillColor="#00000000"
         android:strokeLineCap="round"
-        android:pathData="M45,77 A13,13 0 0,1 63,77"/>
+        android:pathData="M48,33 A8.5,8.5 0 0,1 60,33"/>
 
-    <!-- WiFi arc - middle (radius ~17, apex at y~68) -->
+    <!-- WiFi arc - middle -->
     <path
-        android:strokeColor="#42A5F5"
-        android:strokeWidth="3.5"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="3"
         android:fillColor="#00000000"
         android:strokeLineCap="round"
-        android:pathData="M37,68 A24,24 0 0,1 71,68"/>
+        android:pathData="M43.5,28 A14.5,14.5 0 0,1 64.5,28"/>
 
-    <!-- WiFi arc - outermost (radius ~25, apex at y~59) -->
+    <!-- WiFi arc - outermost -->
     <path
-        android:strokeColor="#90CAF9"
-        android:strokeWidth="3.5"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="3"
         android:fillColor="#00000000"
         android:strokeLineCap="round"
-        android:pathData="M29,59 A35,35 0 0,1 79,59"/>
+        android:pathData="M39,23 A20.5,20.5 0 0,1 69,23"/>
+
+    <!-- Clock hour hand (pointing toward ~10 o'clock) -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="3.5"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000"
+        android:pathData="M54,54 L43,44"/>
+
+    <!-- Clock minute hand (pointing toward ~2 o'clock) -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2.5"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000"
+        android:pathData="M54,54 L64,43"/>
+
+    <!-- Clock second hand / tail (pointing straight down) -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000"
+        android:pathData="M54,54 L54,74"/>
+
+    <!-- Center pivot of clock -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,54 A3,3 0 1,1 53.99,54 Z"/>
 
 </vector>
+

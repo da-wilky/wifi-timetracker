@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.wifitracker.R
+import com.wifitracker.domain.model.BssidRecord
 import com.wifitracker.domain.model.WifiEvent
 import java.time.Instant
 import java.time.ZoneId
@@ -29,6 +30,7 @@ fun EventLogScreen(
 ) {
     val eventsPager = viewModel.eventsPager.collectAsLazyPagingItems()
     val recentSessions by viewModel.recentSessions.collectAsState()
+    val bssidRecords by viewModel.bssidRecords.collectAsState()
     var editingEvent by remember { mutableStateOf<WifiEvent?>(null) }
 
     Scaffold(
@@ -53,6 +55,22 @@ fun EventLogScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
+            if (bssidRecords.isNotEmpty()) {
+                item {
+                    Text(
+                        text = stringResource(R.string.known_bssids),
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
+                }
+                items(bssidRecords) { record ->
+                    BssidItem(record = record)
+                }
+                item {
+                    Divider(modifier = Modifier.padding(vertical = 16.dp))
+                }
+            }
+
             if (recentSessions.isNotEmpty()) {
                 item {
                     Text(
@@ -99,6 +117,23 @@ fun EventLogScreen(
             },
             onDismiss = { editingEvent = null }
         )
+    }
+}
+
+@Composable
+fun BssidItem(record: BssidRecord) {
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            Text(
+                text = record.bssid,
+                style = MaterialTheme.typography.bodyMedium
+            )
+            Text(
+                text = stringResource(R.string.bssid_first_seen, formatTimestamp(record.firstSeenAt)),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
     }
 }
 

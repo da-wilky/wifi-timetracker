@@ -11,6 +11,8 @@ import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import com.wifitracker.R
 import com.wifitracker.data.local.dao.EventDao
+import com.wifitracker.data.local.dao.BssidDao
+import com.wifitracker.data.local.entity.BssidEntity
 import com.wifitracker.data.local.entity.EventEntity
 import com.wifitracker.data.repository.TrackerRepository
 import com.wifitracker.ui.MainActivity
@@ -36,6 +38,9 @@ class WifiTrackingService : Service() {
 
     @Inject
     lateinit var eventDao: EventDao
+
+    @Inject
+    lateinit var bssidDao: BssidDao
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private var currentSsid: String? = null
@@ -99,8 +104,8 @@ class WifiTrackingService : Service() {
                 val newSsid = state.ssid
                 val newBssid = state.bssid
 
-                if (newSsid != currentSsid || newBssid != currentBssid) {
-                    // Record DISCONNECT from the previous network if applicable
+                if (newSsid != currentSsid) {
+                    // SSID changed – record disconnect from previous network if applicable
                     val prevTrackerId = currentTrackerId
                     if (currentSsid != null && prevTrackerId != null) {
                         eventDao.insert(
@@ -116,7 +121,7 @@ class WifiTrackingService : Service() {
                     currentBssid = newBssid
                     currentTrackerId = null
 
-                    val tracker = trackerRepository.findMatchingTracker(newSsid, newBssid)
+                    val tracker = trackerRepository.findMatchingTracker(newSsid)
                     if (tracker != null) {
                         currentTrackerId = tracker.id
                         eventDao.insert(
@@ -129,6 +134,22 @@ class WifiTrackingService : Service() {
                     }
 
                     updateNotification(newSsid)
+                } else if (newBssid != currentBssid) {
+                    // Only the BSSID changed (roamed to another access point on the same network).
+                    // Do NOT record a disconnect/connect – just update the current BSSID.
+                    currentBssid = newBssid
+                }
+
+                // Record the BSSID in the bssids table if we are actively tracking this SSID
+                val trackerId = currentTrackerId
+                if (trackerId != null && newBssid != null) {
+                    bssidDao.insertIfAbsent(
+                        BssidEntity(
+                            trackerId = trackerId,
+                            bssid = newBssid,
+                            firstSeenAt = System.currentTimeMillis()
+                        )
+                    )
                 }
             }
         }

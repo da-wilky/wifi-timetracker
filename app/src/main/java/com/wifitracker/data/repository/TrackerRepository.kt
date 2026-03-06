@@ -28,8 +28,8 @@ class TrackerRepository @Inject constructor(
         return trackerDao.getAllSnapshot().map { it.toDomain() }
     }
 
-    suspend fun findMatchingTracker(ssid: String, bssid: String?): Tracker? {
-        return trackerDao.findMatchingTracker(ssid, bssid)?.toDomain()
+    suspend fun findMatchingTracker(ssid: String): Tracker? {
+        return trackerDao.findMatchingTracker(ssid)?.toDomain()
     }
 
     private fun TrackerEntity.toDomain() = Tracker(

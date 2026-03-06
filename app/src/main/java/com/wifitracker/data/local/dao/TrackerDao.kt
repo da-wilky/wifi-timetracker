@@ -23,11 +23,10 @@ interface TrackerDao {
 
     @Query("""
         SELECT * FROM trackers
-        WHERE ssid = :ssid AND (bssid = :bssid OR bssid IS NULL)
-        ORDER BY CASE WHEN bssid IS NULL THEN 1 ELSE 0 END
+        WHERE ssid = :ssid
         LIMIT 1
     """)
-    suspend fun findMatchingTracker(ssid: String, bssid: String?): TrackerEntity?
+    suspend fun findMatchingTracker(ssid: String): TrackerEntity?
 
     @Query("SELECT * FROM trackers ORDER BY createdAt DESC")
     suspend fun getAllSnapshot(): List<TrackerEntity>
