@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">WLAN-Zeiterfassung</string>
+    <string name="app_name">WiFi TimeTracker</string>
     <string name="tab_home">Startseite</string>
     <string name="tab_trackers">Tracker</string>
     <string name="create_tracker">Tracker erstellen</string>
@@ -33,4 +33,12 @@
     <string name="not_tracking">Derzeit nicht verfolgt</string>
     <string name="connect_event">Verbinden</string>
     <string name="disconnect_event">Trennen</string>
+    <string name="tab_settings">Einstellungen</string>
+    <string name="settings_title">Einstellungen</string>
+    <string name="language_preference">Sprache</string>
+    <string name="language_english">Englisch</string>
+    <string name="language_german">Deutsch</string>
+    <string name="grant_permissions">Berechtigungen erteilen</string>
+    <string name="notification_channel_name">WLAN-Verfolgung</string>
+    <string name="notification_channel_description">Verfolgt WLAN-Netzwerkverbindungen</string>
 </resources>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">WiFi Time Tracker</string>
+    <string name="app_name">WiFi TimeTracker</string>
     <string name="tab_home">Home</string>
     <string name="tab_trackers">Trackers</string>
     <string name="create_tracker">Create Tracker</string>
@@ -33,4 +33,12 @@
     <string name="not_tracking">Currently not tracking</string>
     <string name="connect_event">Connect</string>
     <string name="disconnect_event">Disconnect</string>
+    <string name="tab_settings">Settings</string>
+    <string name="settings_title">Settings</string>
+    <string name="language_preference">Language</string>
+    <string name="language_english">English</string>
+    <string name="language_german">Deutsch</string>
+    <string name="grant_permissions">Grant Permissions</string>
+    <string name="notification_channel_name">WiFi Tracking</string>
+    <string name="notification_channel_description">Tracks WiFi network connections</string>
 </resources>

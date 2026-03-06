@@ -134,7 +134,7 @@ fun HomeScreen(
                             style = MaterialTheme.typography.bodyMedium
                         )
                         Button(onClick = { permissionsState.launchMultiplePermissionRequest() }) {
-                            Text("Grant Permissions")
+                            Text(stringResource(R.string.grant_permissions))
                         }
                     }
                 }

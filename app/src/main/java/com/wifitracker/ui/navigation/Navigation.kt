@@ -3,6 +3,7 @@ package com.wifitracker.ui.navigation
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -17,6 +18,7 @@ import androidx.navigation.navArgument
 import com.wifitracker.R
 import com.wifitracker.ui.detail.EventLogScreen
 import com.wifitracker.ui.home.HomeScreen
+import com.wifitracker.ui.settings.SettingsScreen
 import com.wifitracker.ui.trackers.TrackersScreen
 
 sealed class Screen(val route: String) {
@@ -25,6 +27,7 @@ sealed class Screen(val route: String) {
     data object EventLog : Screen("eventLog/{trackerId}") {
         fun createRoute(trackerId: Long) = "eventLog/$trackerId"
     }
+    data object Settings : Screen("settings")
 }
 
 @Composable
@@ -56,6 +59,21 @@ fun BottomNavigationBar(
             selected = currentDestination?.hierarchy?.any { it.route == Screen.Trackers.route } == true,
             onClick = {
                 navController.navigate(Screen.Trackers.route) {
+                    popUpTo(navController.graph.startDestinationId) {
+                        saveState = true
+                    }
+                    launchSingleTop = true
+                    restoreState = true
+                }
+            }
+        )
+
+        NavigationBarItem(
+            icon = { Icon(Icons.Default.Settings, contentDescription = null) },
+            label = { Text(stringResource(R.string.tab_settings)) },
+            selected = currentDestination?.hierarchy?.any { it.route == Screen.Settings.route } == true,
+            onClick = {
+                navController.navigate(Screen.Settings.route) {
                     popUpTo(navController.graph.startDestinationId) {
                         saveState = true
                     }
@@ -107,6 +125,10 @@ fun AppNavHost(
                 trackerId = trackerId,
                 onNavigateBack = { navController.navigateUp() }
             )
+        }
+
+        composable(Screen.Settings.route) {
+            SettingsScreen()
         }
     }
 }

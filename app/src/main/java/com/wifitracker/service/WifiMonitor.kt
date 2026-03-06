@@ -21,6 +21,29 @@ class WifiMonitor @Inject constructor(
     private val connectivityManager: ConnectivityManager
 ) {
     fun observeWifiNetwork(): Flow<WifiNetworkInfo?> = callbackFlow {
+        // Emit initial state immediately
+        val activeNetwork = connectivityManager.activeNetwork
+        val activeCapabilities = activeNetwork?.let {
+            connectivityManager.getNetworkCapabilities(it)
+        }
+        if (activeCapabilities?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) == true) {
+            val wifiInfo = activeCapabilities.transportInfo as? WifiInfo
+            val info = wifiInfo?.let {
+                val parsedSsid = it.ssid.removeSurrounding("\"")
+                if (parsedSsid == "<unknown ssid>") {
+                    null
+                } else {
+                    WifiNetworkInfo(
+                        ssid = parsedSsid,
+                        bssid = it.bssid
+                    )
+                }
+            }
+            trySend(info)
+        } else {
+            trySend(null)
+        }
+
         val networkRequest = NetworkRequest.Builder()
             .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
             .build()

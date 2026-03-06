@@ -104,10 +104,10 @@ class WifiTrackingService : Service() {
     private fun createNotificationChannel() {
         val channel = NotificationChannel(
             CHANNEL_ID,
-            "WiFi Tracking",
+            getString(R.string.notification_channel_name),
             NotificationManager.IMPORTANCE_LOW
         ).apply {
-            description = "Tracks WiFi network connections"
+            description = getString(R.string.notification_channel_description)
         }
         val manager = getSystemService(NotificationManager::class.java)
         manager.createNotificationChannel(channel)
@@ -115,13 +115,13 @@ class WifiTrackingService : Service() {
 
     private fun createNotification(ssid: String?): Notification {
         val text = if (ssid != null && currentTrackerId != null) {
-            "Currently tracking network: $ssid"
+            getString(R.string.currently_tracking, ssid)
         } else {
-            "Currently not tracking"
+            getString(R.string.not_tracking)
         }
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("WiFi Time Tracker")
+            .setContentTitle(getString(R.string.app_name))
             .setContentText(text)
             .setSmallIcon(R.drawable.ic_notification)
             .setPriority(NotificationCompat.PRIORITY_LOW)
