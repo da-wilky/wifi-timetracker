@@ -41,4 +41,7 @@
     <string name="grant_permissions">Berechtigungen erteilen</string>
     <string name="notification_channel_name">WLAN-Verfolgung</string>
     <string name="notification_channel_description">Verfolgt WLAN-Netzwerkverbindungen</string>
+    <string name="notification_stop_action">Stopp</string>
+    <string name="confirm_stop_tracking_title">WLAN-Verfolgung beenden</string>
+    <string name="confirm_stop_tracking_message">Verfolgung vollständig beenden und Hintergrunddienst entfernen?</string>
 </resources>

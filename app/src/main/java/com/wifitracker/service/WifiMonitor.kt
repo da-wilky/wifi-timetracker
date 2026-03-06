@@ -47,6 +47,13 @@ class WifiMonitor @Inject constructor(
             .build()
 
         val callback = object : ConnectivityManager.NetworkCallback(FLAG_INCLUDE_LOCATION_INFO) {
+            override fun onAvailable(network: Network) {
+                // Capture initial connection state when the service first observes the network
+                val capabilities = connectivityManager.getNetworkCapabilities(network)
+                val wifiInfo = capabilities?.transportInfo as? WifiInfo
+                trySend(parseWifiInfo(wifiInfo))
+            }
+
             override fun onCapabilitiesChanged(
                 network: Network,
                 networkCapabilities: NetworkCapabilities

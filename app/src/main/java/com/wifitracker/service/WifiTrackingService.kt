@@ -3,6 +3,7 @@ package com.wifitracker.service
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
 import android.content.pm.ServiceInfo
@@ -12,6 +13,7 @@ import com.wifitracker.R
 import com.wifitracker.data.local.dao.EventDao
 import com.wifitracker.data.local.entity.EventEntity
 import com.wifitracker.data.repository.TrackerRepository
+import com.wifitracker.ui.MainActivity
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -151,13 +153,39 @@ class WifiTrackingService : Service() {
             getString(R.string.not_tracking)
         }
 
+        // Tapping the notification opens the app
+        val openAppIntent = Intent(this, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
+        }
+        val openAppPendingIntent = PendingIntent.getActivity(
+            this, 0, openAppIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        // "Stop" action opens the app and shows a shutdown confirmation dialog
+        val stopIntent = Intent(this, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            putExtra(MainActivity.EXTRA_SHOW_STOP_DIALOG, true)
+        }
+        val stopPendingIntent = PendingIntent.getActivity(
+            this, REQUEST_CODE_STOP, stopIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle(getString(R.string.app_name))
             .setContentText(text)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(text))
             .setSmallIcon(R.drawable.ic_notification)
             .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setContentIntent(openAppPendingIntent)
             // Prevent the user from dismissing the foreground-service notification
             .setOngoing(true)
+            .addAction(
+                android.R.drawable.ic_menu_close_clear_cancel,
+                getString(R.string.notification_stop_action),
+                stopPendingIntent
+            )
             .build()
     }
 
@@ -189,5 +217,6 @@ class WifiTrackingService : Service() {
     companion object {
         private const val CHANNEL_ID = "wifi_tracking_channel"
         private const val NOTIFICATION_ID = 1
+        private const val REQUEST_CODE_STOP = 100
     }
 }

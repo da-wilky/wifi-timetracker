@@ -48,7 +48,10 @@ fun BottomNavigationBar(
                         saveState = true
                     }
                     launchSingleTop = true
-                    restoreState = true
+                    // Do NOT restoreState here: restoring state for the start destination
+                    // would bring back a previously-saved Trackers/Settings back stack,
+                    // making it appear as though the Home tap did nothing.
+                    restoreState = false
                 }
             }
         )
