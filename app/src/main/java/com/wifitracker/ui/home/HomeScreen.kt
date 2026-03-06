@@ -1,5 +1,6 @@
 package com.wifitracker.ui.home
 
+import android.os.Build
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -35,13 +36,18 @@ fun HomeScreen(
 
     var showFilterDialog by remember { mutableStateOf(false) }
 
-    val permissionsState = rememberMultiplePermissionsState(
-        permissions = listOf(
-            android.Manifest.permission.ACCESS_FINE_LOCATION,
+    // On Android 13+ (API 33+) NEARBY_WIFI_DEVICES is sufficient to read the SSID via
+    // FLAG_INCLUDE_LOCATION_INFO without requiring GPS / Location Services to be enabled.
+    // On older Android versions ACCESS_FINE_LOCATION is still needed to obtain the SSID.
+    val requiredPermissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        listOf(
             android.Manifest.permission.NEARBY_WIFI_DEVICES,
             android.Manifest.permission.POST_NOTIFICATIONS
         )
-    )
+    } else {
+        listOf(android.Manifest.permission.ACCESS_FINE_LOCATION)
+    }
+    val permissionsState = rememberMultiplePermissionsState(permissions = requiredPermissions)
 
     LaunchedEffect(Unit) {
         if (!permissionsState.allPermissionsGranted) {
