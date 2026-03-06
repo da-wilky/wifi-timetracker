@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">WLAN-Zeiterfassung</string>
+    <string name="tab_home">Startseite</string>
+    <string name="tab_trackers">Tracker</string>
+    <string name="create_tracker">Tracker erstellen</string>
+    <string name="delete_tracker">Tracker löschen</string>
+    <string name="reset_timer">Timer zurücksetzen</string>
+    <string name="not_connected">Mit keinem WLAN-Netzwerk verbunden</string>
+    <string name="connected_to">Verbunden mit: %s</string>
+    <string name="confirm_delete_title">Tracker löschen</string>
+    <string name="confirm_delete_message">Möchten Sie diesen Tracker wirklich löschen? Alle aufgezeichneten Daten gehen verloren.</string>
+    <string name="confirm_reset_title">Timer zurücksetzen</string>
+    <string name="confirm_reset_message">Möchten Sie diesen Timer wirklich zurücksetzen? Alle aufgezeichneten Sitzungen werden gelöscht.</string>
+    <string name="confirm">Bestätigen</string>
+    <string name="cancel">Abbrechen</string>
+    <string name="filter_all">Gesamte Zeit</string>
+    <string name="filter_today">Heute</string>
+    <string name="filter_yesterday">Gestern</string>
+    <string name="filter_this_week">Diese Woche</string>
+    <string name="filter_last_week">Letzte Woche</string>
+    <string name="filter_this_month">Dieser Monat</string>
+    <string name="filter_last_month">Letzter Monat</string>
+    <string name="filter_custom">Benutzerdefinierter Zeitraum</string>
+    <string name="recent_sessions">Letzte Sitzungen</string>
+    <string name="event_log">Ereignisprotokoll</string>
+    <string name="edit_event">Ereignis bearbeiten</string>
+    <string name="save">Speichern</string>
+    <string name="orphaned_sessions_warning">Einige Tracking-Sitzungen wurden nicht ordnungsgemäß beendet. Sie wurden automatisch geschlossen. Bitte überprüfen und bei Bedarf anpassen.</string>
+    <string name="view_events">Ereignisse anzeigen</string>
+    <string name="permission_rationale">Diese App benötigt WLAN- und Benachrichtigungsberechtigungen, um Ihre Netzwerknutzung zu erfassen.</string>
+    <string name="currently_tracking">Aktuell verfolgtes Netzwerk: %s</string>
+    <string name="not_tracking">Derzeit nicht verfolgt</string>
+    <string name="connect_event">Verbinden</string>
+    <string name="disconnect_event">Trennen</string>
+</resources>

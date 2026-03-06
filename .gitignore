@@ -1,0 +1,58 @@
+# ─── Gradle ───────────────────────────────────────
+.gradle/
+**/build/
+!**/src/**/build/       # don't ignore source folders named "build"
+gradle-app.setting
+.gradletasknamecache
+
+# Keep Gradle wrapper (important for reproducible builds!)
+!gradle-wrapper.jar
+!gradle-wrapper.properties
+
+# ─── Java Compiled Output ─────────────────────────
+*.class
+*.jar            # general JARs
+*.war
+*.ear
+*.nar
+hs_err_pid*      # JVM crash logs
+
+# ─── IDE: IntelliJ IDEA ───────────────────────────
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/dictionaries
+.idea/vcs.xml
+.idea/gradle.xml
+.idea/libraries/
+.idea/dataSources*
+*.iws
+/out/
+
+# ─── IDE: VS Code ─────────────────────────────────
+.vscode/
+
+# ─── IDE: Eclipse ─────────────────────────────────
+.project
+.classpath
+.settings/
+bin/
+
+# ─── Secrets & Environment ────────────────────────
+.env
+*.env.*
+local.properties
+# Careful: only ignore if it contains secrets/local paths
+# gradle.properties
+
+# ─── Logs & Temp ──────────────────────────────────
+*.log
+*.tmp
+logs/
+
+# ─── OS Files ─────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+.npm
+.direnv
+.envrc
