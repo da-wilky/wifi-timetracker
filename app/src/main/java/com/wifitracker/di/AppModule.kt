@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.ConnectivityManager
 import androidx.room.Room
 import com.wifitracker.data.local.WifiTrackerDatabase
+import com.wifitracker.data.local.dao.BssidDao
 import com.wifitracker.data.local.dao.EventDao
 import com.wifitracker.data.local.dao.TrackerDao
 import dagger.Module
@@ -26,7 +27,7 @@ object AppModule {
             context,
             WifiTrackerDatabase::class.java,
             "wifi_tracker_db"
-        ).build()
+        ).addMigrations(WifiTrackerDatabase.MIGRATION_1_2).build()
     }
 
     @Provides
@@ -39,6 +40,12 @@ object AppModule {
     @Singleton
     fun provideEventDao(database: WifiTrackerDatabase): EventDao {
         return database.eventDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideBssidDao(database: WifiTrackerDatabase): BssidDao {
+        return database.bssidDao()
     }
 
     @Provides

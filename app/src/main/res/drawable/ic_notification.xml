@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp"
     android:height="24dp"
@@ -9,43 +10,75 @@
         android:strokeColor="@android:color/white"
         android:strokeWidth="1.5"
         android:fillColor="#00000000"
-        android:pathData="M12,2 A8,8 0 1,1 11.99,2 Z"/>
+        android:pathData="M12,2 A10,10 0 1,1 11.99,2 Z"/>
 
-    <!-- Clock hour hand (pointing ~10 o'clock) -->
+    <!-- Clock tick at 3 -->
     <path
         android:strokeColor="@android:color/white"
-        android:strokeWidth="1.5"
-        android:fillColor="#00000000"
+        android:strokeWidth="1.2"
         android:strokeLineCap="round"
-        android:pathData="M12,10 L10,7"/>
+        android:fillColor="#00000000"
+        android:pathData="M22,12 L20.5,12"/>
 
-    <!-- Clock minute hand (pointing ~2 o'clock) -->
+    <!-- Clock tick at 6 -->
     <path
         android:strokeColor="@android:color/white"
-        android:strokeWidth="1.5"
-        android:fillColor="#00000000"
+        android:strokeWidth="1.2"
         android:strokeLineCap="round"
-        android:pathData="M12,10 L15.5,8"/>
+        android:fillColor="#00000000"
+        android:pathData="M12,22 L12,20.5"/>
 
-    <!-- WiFi dot -->
+    <!-- Clock tick at 9 -->
+    <path
+        android:strokeColor="@android:color/white"
+        android:strokeWidth="1.2"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000"
+        android:pathData="M2,12 L3.5,12"/>
+
+    <!-- WiFi dot inside clock at top -->
     <path
         android:fillColor="@android:color/white"
-        android:pathData="M12,22 A1,1 0 1,1 11.99,22 Z"/>
+        android:pathData="M12,7.5 A1,1 0 1,1 11.99,7.5 Z"/>
 
-    <!-- WiFi arc small -->
+    <!-- WiFi arc innermost -->
+    <path
+        android:strokeColor="@android:color/white"
+        android:strokeWidth="1.2"
+        android:fillColor="#00000000"
+        android:strokeLineCap="round"
+        android:pathData="M9.8,5.8 A3,3 0 0,1 14.2,5.8"/>
+
+    <!-- WiFi arc outermost -->
+    <path
+        android:strokeColor="@android:color/white"
+        android:strokeWidth="1.2"
+        android:fillColor="#00000000"
+        android:strokeLineCap="round"
+        android:pathData="M7.5,3.8 A6.5,6.5 0 0,1 16.5,3.8"/>
+
+    <!-- Clock hour hand (toward ~10 o'clock) -->
     <path
         android:strokeColor="@android:color/white"
         android:strokeWidth="1.5"
-        android:fillColor="#00000000"
         android:strokeLineCap="round"
-        android:pathData="M9.5,19.5 A3.5,3.5 0 0,1 14.5,19.5"/>
+        android:fillColor="#00000000"
+        android:pathData="M12,12 L8.5,9.5"/>
 
-    <!-- WiFi arc large -->
+    <!-- Clock minute hand (toward ~2 o'clock) -->
     <path
         android:strokeColor="@android:color/white"
-        android:strokeWidth="1.5"
-        android:fillColor="#00000000"
+        android:strokeWidth="1.2"
         android:strokeLineCap="round"
-        android:pathData="M7,17 A7,7 0 0,1 17,17"/>
+        android:fillColor="#00000000"
+        android:pathData="M12,12 L15,9"/>
+
+    <!-- Clock tail (downward) -->
+    <path
+        android:strokeColor="@android:color/white"
+        android:strokeWidth="1"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000"
+        android:pathData="M12,12 L12,17"/>
 
 </vector>

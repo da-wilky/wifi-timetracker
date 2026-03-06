@@ -42,6 +42,8 @@
     <string name="notification_channel_name">WLAN-Verfolgung</string>
     <string name="notification_channel_description">Verfolgt WLAN-Netzwerkverbindungen</string>
     <string name="notification_stop_action">Stopp</string>
+    <string name="known_bssids">Bekannte Zugangspunkte (BSSIDs)</string>
+    <string name="bssid_first_seen">Erstmals gesehen: %s</string>
     <string name="confirm_stop_tracking_title">WLAN-Verfolgung beenden</string>
     <string name="confirm_stop_tracking_message">Verfolgung vollständig beenden und Hintergrunddienst entfernen?</string>
 </resources>
