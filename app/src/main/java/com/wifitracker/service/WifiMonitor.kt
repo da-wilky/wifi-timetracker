@@ -48,10 +48,12 @@ class WifiMonitor @Inject constructor(
 
         val callback = object : ConnectivityManager.NetworkCallback(FLAG_INCLUDE_LOCATION_INFO) {
             override fun onAvailable(network: Network) {
-                // Capture initial connection state when the service first observes the network
-                val capabilities = connectivityManager.getNetworkCapabilities(network)
-                val wifiInfo = capabilities?.transportInfo as? WifiInfo
-                trySend(parseWifiInfo(wifiInfo))
+                // Do NOT call getNetworkCapabilities() here: manual calls never include
+                // location-sensitive SSID info when only NEARBY_WIFI_DEVICES is held (no
+                // ACCESS_FINE_LOCATION). FLAG_INCLUDE_LOCATION_INFO only applies to the
+                // NetworkCapabilities object delivered via onCapabilitiesChanged(), which
+                // Android guarantees is called immediately after onAvailable() as part of
+                // the initial callback sequence.
             }
 
             override fun onCapabilitiesChanged(
