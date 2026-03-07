@@ -34,11 +34,17 @@ class HomeViewModel @Inject constructor(
     private val trackerDao: TrackerDao,
     private val eventRepository: EventRepository,
     private val eventDao: EventDao,
-    wifiMonitor: WifiMonitor
+    private val wifiMonitor: WifiMonitor
 ) : ViewModel() {
 
-    private val _wifiState = wifiMonitor.observeWifiNetwork()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), WifiNetworkState.Disconnected)
+    // A manually-triggered state update emitted when the user refreshes (e.g. after
+    // granting location permission while already connected to WiFi).
+    private val _refreshedState = MutableSharedFlow<WifiNetworkState>(extraBufferCapacity = 1)
+
+    private val _wifiState = merge(
+        wifiMonitor.observeWifiNetwork(),
+        _refreshedState
+    ).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), wifiMonitor.getCurrentState())
 
     val currentSsid: StateFlow<String?> = _wifiState.map {
         (it as? WifiNetworkState.Connected)?.ssid
@@ -143,8 +149,12 @@ class HomeViewModel @Inject constructor(
     }
 
     suspend fun refresh() {
-        // The WiFi state is already observed via a live Flow. This suspend function
-        // gives the pull-to-refresh gesture a brief moment to show before dismissing.
+        // Re-query the current WiFi state and push it into the flow so that
+        // the UI updates immediately (e.g. after location permission is granted
+        // while already connected to a network). tryEmit() is used to avoid
+        // suspension — the emission is best-effort and the buffer (capacity 1)
+        // ensures it is virtually never dropped.
+        _refreshedState.tryEmit(wifiMonitor.getCurrentState())
         kotlinx.coroutines.delay(REFRESH_DISPLAY_DURATION_MS)
     }
 

@@ -41,6 +41,24 @@ class WifiMonitor @Inject constructor(
         private const val UNKNOWN_SSID = "<unknown ssid>"
     }
 
+    /**
+     * Returns the current WiFi state by querying [ConnectivityManager] directly.
+     *
+     * Unlike [observeWifiNetwork], this performs a one-shot synchronous check and is
+     * suitable for on-demand refresh (e.g. after location permissions are granted).
+     */
+    fun getCurrentState(): WifiNetworkState {
+        val network = connectivityManager.activeNetwork
+            ?: return WifiNetworkState.Disconnected
+        val capabilities = connectivityManager.getNetworkCapabilities(network)
+            ?: return WifiNetworkState.Disconnected
+        if (!capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
+            return WifiNetworkState.Disconnected
+        }
+        val wifiInfo = capabilities.transportInfo as? WifiInfo
+        return parseWifiInfo(wifiInfo)
+    }
+
     fun observeWifiNetwork(): Flow<WifiNetworkState> = callbackFlow {
         val networkRequest = NetworkRequest.Builder()
             .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)

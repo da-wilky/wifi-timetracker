@@ -49,6 +49,14 @@ fun HomeScreen(
         }
     }
 
+    // Re-check WiFi state when permissions are granted so the UI reflects the
+    // real SSID immediately without requiring an app restart.
+    LaunchedEffect(permissionsState.allPermissionsGranted) {
+        if (permissionsState.allPermissionsGranted) {
+            viewModel.refresh()
+        }
+    }
+
     // Split trackers: connected one first (if tracked), then the rest
     val connectedTracker = if (isTracked && currentSsid != null) {
         trackers.firstOrNull { it.ssid == currentSsid }
