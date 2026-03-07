@@ -56,3 +56,4 @@ Thumbs.db
 .npm
 .direnv
 .envrc
+build.sh
