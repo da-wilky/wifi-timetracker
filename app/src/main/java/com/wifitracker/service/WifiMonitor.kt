@@ -10,8 +10,11 @@ import android.util.Log
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.coroutines.resume
 
 /**
  * Represents the possible WiFi network states observed by [WifiMonitor].
@@ -46,12 +49,15 @@ class WifiMonitor @Inject constructor(
     }
 
     /**
-     * Returns the current WiFi state by querying [WifiManager] directly.
+     * Returns the current WiFi state using the modern NetworkCallback API.
      *
-     * Unlike [observeWifiNetwork], this performs a one-shot synchronous check and is
+     * Unlike [observeWifiNetwork], this performs a one-shot check and is
      * suitable for on-demand refresh (e.g. after location permissions are granted).
+     *
+     * Uses a temporary network callback with FLAG_INCLUDE_LOCATION_INFO to get
+     * accurate WiFi information, then unregisters immediately.
      */
-    fun getCurrentState(): WifiNetworkState {
+    suspend fun getCurrentState(): WifiNetworkState {
         // First verify we're actually connected to WiFi
         val network = connectivityManager.activeNetwork
         if (network == null) {
@@ -70,9 +76,36 @@ class WifiMonitor @Inject constructor(
             return WifiNetworkState.Disconnected
         }
 
-        // Get SSID from WifiManager (includes location info when permissions granted)
-        val wifiInfo = wifiManager.connectionInfo
-        val state = parseWifiInfo(wifiInfo)
+        // Use network callback to get WiFi info with location data
+        val state = withTimeoutOrNull(1000L) {
+            suspendCancellableCoroutine<WifiNetworkState> { continuation ->
+                val networkRequest = NetworkRequest.Builder()
+                    .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+                    .build()
+
+                val callback = object : ConnectivityManager.NetworkCallback(FLAG_INCLUDE_LOCATION_INFO) {
+                    override fun onCapabilitiesChanged(
+                        network: Network,
+                        networkCapabilities: NetworkCapabilities
+                    ) {
+                        val wifiInfo = networkCapabilities.transportInfo as? WifiInfo
+                        val result = parseWifiInfo(wifiInfo)
+                        connectivityManager.unregisterNetworkCallback(this)
+                        continuation.resume(result)
+                    }
+                }
+
+                continuation.invokeOnCancellation {
+                    try {
+                        connectivityManager.unregisterNetworkCallback(callback)
+                    } catch (e: Exception) {
+                        // Already unregistered
+                    }
+                }
+
+                connectivityManager.registerNetworkCallback(networkRequest, callback)
+            }
+        } ?: WifiNetworkState.Disconnected
 
         when (state) {
             is WifiNetworkState.Connected ->
@@ -80,7 +113,7 @@ class WifiMonitor @Inject constructor(
             is WifiNetworkState.SsidUnavailable ->
                 Log.d(TAG, "getCurrentState() -> SsidUnavailable")
             is WifiNetworkState.Disconnected ->
-                Log.d(TAG, "getCurrentState() -> Disconnected (no WiFi info)")
+                Log.d(TAG, "getCurrentState() -> Disconnected")
         }
 
         return state

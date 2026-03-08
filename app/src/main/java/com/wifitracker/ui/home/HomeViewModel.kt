@@ -39,11 +39,14 @@ class HomeViewModel @Inject constructor(
 
     // Use MutableStateFlow so we can directly update the state when refresh() is called.
     // This mirrors what happens on app restart, where getCurrentState() provides the initial value.
-    private val _wifiState = MutableStateFlow<WifiNetworkState>(wifiMonitor.getCurrentState())
+    private val _wifiState = MutableStateFlow<WifiNetworkState>(WifiNetworkState.Disconnected)
 
     init {
-        // Collect from the network callback and update our state
         viewModelScope.launch {
+            // Get initial state
+            _wifiState.value = wifiMonitor.getCurrentState()
+
+            // Then collect from the network callback and update our state
             wifiMonitor.observeWifiNetwork().collect { state ->
                 _wifiState.value = state
             }
@@ -52,13 +55,11 @@ class HomeViewModel @Inject constructor(
 
     val currentSsid: StateFlow<String?> = _wifiState.map {
         (it as? WifiNetworkState.Connected)?.ssid
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000),
-        (wifiMonitor.getCurrentState() as? WifiNetworkState.Connected)?.ssid)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     val currentBssid: StateFlow<String?> = _wifiState.map {
         (it as? WifiNetworkState.Connected)?.bssid
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000),
-        (wifiMonitor.getCurrentState() as? WifiNetworkState.Connected)?.bssid)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     val trackers: StateFlow<List<Tracker>> = trackerRepository.getAll()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
