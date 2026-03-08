@@ -35,7 +35,7 @@ fun HomeScreen(
 
     var showFilterDialog by remember { mutableStateOf(false) }
 
-    val permissionsState = rememberMultiplePermissionsState(
+    val foregroundPermissionsState = rememberMultiplePermissionsState(
         permissions = listOf(
             android.Manifest.permission.ACCESS_FINE_LOCATION,
             android.Manifest.permission.NEARBY_WIFI_DEVICES,
@@ -43,22 +43,38 @@ fun HomeScreen(
         )
     )
 
+    val backgroundLocationState = rememberMultiplePermissionsState(
+        permissions = listOf(android.Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+    )
+
+    // First, request foreground permissions
     LaunchedEffect(Unit) {
-        if (!permissionsState.allPermissionsGranted) {
-            permissionsState.launchMultiplePermissionRequest()
+        if (!foregroundPermissionsState.allPermissionsGranted) {
+            foregroundPermissionsState.launchMultiplePermissionRequest()
         }
     }
 
+    // Once foreground permissions are granted, request background location
+    LaunchedEffect(foregroundPermissionsState.allPermissionsGranted) {
+        if (foregroundPermissionsState.allPermissionsGranted && !backgroundLocationState.allPermissionsGranted) {
+            // Small delay to avoid overwhelming the user with back-to-back permission dialogs
+            kotlinx.coroutines.delay(500)
+            backgroundLocationState.launchMultiplePermissionRequest()
+        }
+    }
+
+    val allPermissionsGranted = foregroundPermissionsState.allPermissionsGranted && backgroundLocationState.allPermissionsGranted
+
     // Track permission state transitions to trigger refresh only when changing from denied to granted
-    var previousPermissionsGranted by remember { mutableStateOf(permissionsState.allPermissionsGranted) }
-    LaunchedEffect(permissionsState.allPermissionsGranted) {
-        if (!previousPermissionsGranted && permissionsState.allPermissionsGranted) {
+    var previousPermissionsGranted by remember { mutableStateOf(allPermissionsGranted) }
+    LaunchedEffect(allPermissionsGranted) {
+        if (!previousPermissionsGranted && allPermissionsGranted) {
             // Permissions just granted - wait briefly for Android to propagate the permission
             // before querying the WiFi state, otherwise getCurrentState() may still see <unknown ssid>
             kotlinx.coroutines.delay(200)
             viewModel.refresh()
         }
-        previousPermissionsGranted = permissionsState.allPermissionsGranted
+        previousPermissionsGranted = allPermissionsGranted
     }
 
     // Split trackers: connected one first (if tracked), then the rest
@@ -128,7 +144,7 @@ fun HomeScreen(
                 }
 
                 // Permissions card
-                if (!permissionsState.allPermissionsGranted) {
+                if (!allPermissionsGranted) {
                     item(key = "permissions_card") {
                         Card(
                             colors = CardDefaults.cardColors(
@@ -143,7 +159,13 @@ fun HomeScreen(
                                     text = stringResource(R.string.permission_rationale),
                                     style = MaterialTheme.typography.bodyMedium
                                 )
-                                Button(onClick = { permissionsState.launchMultiplePermissionRequest() }) {
+                                Button(onClick = {
+                                    if (!foregroundPermissionsState.allPermissionsGranted) {
+                                        foregroundPermissionsState.launchMultiplePermissionRequest()
+                                    } else if (!backgroundLocationState.allPermissionsGranted) {
+                                        backgroundLocationState.launchMultiplePermissionRequest()
+                                    }
+                                }) {
                                     Text(stringResource(R.string.grant_permissions))
                                 }
                             }
