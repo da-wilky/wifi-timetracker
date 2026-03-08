@@ -2,6 +2,7 @@ package com.wifitracker.di
 
 import android.content.Context
 import android.net.ConnectivityManager
+import android.net.wifi.WifiManager
 import androidx.room.Room
 import com.wifitracker.data.local.WifiTrackerDatabase
 import com.wifitracker.data.local.dao.BssidDao
@@ -54,5 +55,13 @@ object AppModule {
         @ApplicationContext context: Context
     ): ConnectivityManager {
         return context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+    }
+
+    @Provides
+    @Singleton
+    fun provideWifiManager(
+        @ApplicationContext context: Context
+    ): WifiManager {
+        return context.getSystemService(Context.WIFI_SERVICE) as WifiManager
     }
 }

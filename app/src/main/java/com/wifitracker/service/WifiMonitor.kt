@@ -5,6 +5,8 @@ import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import android.net.wifi.WifiInfo
+import android.net.wifi.WifiManager
+import android.util.Log
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -35,28 +37,53 @@ sealed class WifiNetworkState {
 
 @Singleton
 class WifiMonitor @Inject constructor(
-    private val connectivityManager: ConnectivityManager
+    private val connectivityManager: ConnectivityManager,
+    private val wifiManager: WifiManager
 ) {
     companion object {
+        private const val TAG = "WifiMonitor"
         private const val UNKNOWN_SSID = "<unknown ssid>"
     }
 
     /**
-     * Returns the current WiFi state by querying [ConnectivityManager] directly.
+     * Returns the current WiFi state by querying [WifiManager] directly.
      *
      * Unlike [observeWifiNetwork], this performs a one-shot synchronous check and is
      * suitable for on-demand refresh (e.g. after location permissions are granted).
      */
     fun getCurrentState(): WifiNetworkState {
+        // First verify we're actually connected to WiFi
         val network = connectivityManager.activeNetwork
-            ?: return WifiNetworkState.Disconnected
-        val capabilities = connectivityManager.getNetworkCapabilities(network)
-            ?: return WifiNetworkState.Disconnected
-        if (!capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
+        if (network == null) {
+            Log.d(TAG, "getCurrentState() -> Disconnected (no active network)")
             return WifiNetworkState.Disconnected
         }
-        val wifiInfo = capabilities.transportInfo as? WifiInfo
-        return parseWifiInfo(wifiInfo)
+
+        val capabilities = connectivityManager.getNetworkCapabilities(network)
+        if (capabilities == null) {
+            Log.d(TAG, "getCurrentState() -> Disconnected (no network capabilities)")
+            return WifiNetworkState.Disconnected
+        }
+
+        if (!capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
+            Log.d(TAG, "getCurrentState() -> Disconnected (not WiFi transport)")
+            return WifiNetworkState.Disconnected
+        }
+
+        // Get SSID from WifiManager (includes location info when permissions granted)
+        val wifiInfo = wifiManager.connectionInfo
+        val state = parseWifiInfo(wifiInfo)
+
+        when (state) {
+            is WifiNetworkState.Connected ->
+                Log.d(TAG, "getCurrentState() -> Connected(ssid=${state.ssid}, bssid=${state.bssid})")
+            is WifiNetworkState.SsidUnavailable ->
+                Log.d(TAG, "getCurrentState() -> SsidUnavailable")
+            is WifiNetworkState.Disconnected ->
+                Log.d(TAG, "getCurrentState() -> Disconnected (no WiFi info)")
+        }
+
+        return state
     }
 
     fun observeWifiNetwork(): Flow<WifiNetworkState> = callbackFlow {
@@ -69,7 +96,9 @@ class WifiMonitor @Inject constructor(
                 // Capture initial connection state when the service first observes the network
                 val capabilities = connectivityManager.getNetworkCapabilities(network)
                 val wifiInfo = capabilities?.transportInfo as? WifiInfo
-                trySend(parseWifiInfo(wifiInfo))
+                val state = parseWifiInfo(wifiInfo)
+                Log.d(TAG, "observeWifiNetwork.onAvailable() -> $state")
+                trySend(state)
             }
 
             override fun onCapabilitiesChanged(
@@ -77,10 +106,13 @@ class WifiMonitor @Inject constructor(
                 networkCapabilities: NetworkCapabilities
             ) {
                 val wifiInfo = networkCapabilities.transportInfo as? WifiInfo
-                trySend(parseWifiInfo(wifiInfo))
+                val state = parseWifiInfo(wifiInfo)
+                Log.d(TAG, "observeWifiNetwork.onCapabilitiesChanged() -> $state")
+                trySend(state)
             }
 
             override fun onLost(network: Network) {
+                Log.d(TAG, "observeWifiNetwork.onLost() -> Disconnected")
                 trySend(WifiNetworkState.Disconnected)
             }
         }
