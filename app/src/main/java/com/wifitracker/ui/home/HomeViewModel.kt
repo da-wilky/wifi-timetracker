@@ -37,22 +37,28 @@ class HomeViewModel @Inject constructor(
     private val wifiMonitor: WifiMonitor
 ) : ViewModel() {
 
-    // A manually-triggered state update emitted when the user refreshes (e.g. after
-    // granting location permission while already connected to WiFi).
-    private val _refreshedState = MutableSharedFlow<WifiNetworkState>(extraBufferCapacity = 1)
+    // Use MutableStateFlow so we can directly update the state when refresh() is called.
+    // This mirrors what happens on app restart, where getCurrentState() provides the initial value.
+    private val _wifiState = MutableStateFlow<WifiNetworkState>(wifiMonitor.getCurrentState())
 
-    private val _wifiState = merge(
-        wifiMonitor.observeWifiNetwork(),
-        _refreshedState
-    ).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), wifiMonitor.getCurrentState())
+    init {
+        // Collect from the network callback and update our state
+        viewModelScope.launch {
+            wifiMonitor.observeWifiNetwork().collect { state ->
+                _wifiState.value = state
+            }
+        }
+    }
 
     val currentSsid: StateFlow<String?> = _wifiState.map {
         (it as? WifiNetworkState.Connected)?.ssid
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000),
+        (wifiMonitor.getCurrentState() as? WifiNetworkState.Connected)?.ssid)
 
     val currentBssid: StateFlow<String?> = _wifiState.map {
         (it as? WifiNetworkState.Connected)?.bssid
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000),
+        (wifiMonitor.getCurrentState() as? WifiNetworkState.Connected)?.bssid)
 
     val trackers: StateFlow<List<Tracker>> = trackerRepository.getAll()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -149,12 +155,10 @@ class HomeViewModel @Inject constructor(
     }
 
     suspend fun refresh() {
-        // Re-query the current WiFi state and push it into the flow so that
-        // the UI updates immediately (e.g. after location permission is granted
-        // while already connected to a network). tryEmit() is used to avoid
-        // suspension — the emission is best-effort and the buffer (capacity 1)
-        // ensures it is virtually never dropped.
-        _refreshedState.tryEmit(wifiMonitor.getCurrentState())
+        // Re-query the current WiFi state and update our MutableStateFlow directly.
+        // This is exactly what happens on app restart (getCurrentState() provides the value),
+        // so it should behave identically without needing to restart the app.
+        _wifiState.value = wifiMonitor.getCurrentState()
         kotlinx.coroutines.delay(REFRESH_DISPLAY_DURATION_MS)
     }
 
