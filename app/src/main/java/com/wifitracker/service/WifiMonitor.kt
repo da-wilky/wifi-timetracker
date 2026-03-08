@@ -5,6 +5,7 @@ import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import android.net.wifi.WifiInfo
+import android.net.wifi.WifiManager
 import android.util.Log
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -36,7 +37,8 @@ sealed class WifiNetworkState {
 
 @Singleton
 class WifiMonitor @Inject constructor(
-    private val connectivityManager: ConnectivityManager
+    private val connectivityManager: ConnectivityManager,
+    private val wifiManager: WifiManager
 ) {
     companion object {
         private const val TAG = "WifiMonitor"
@@ -44,12 +46,13 @@ class WifiMonitor @Inject constructor(
     }
 
     /**
-     * Returns the current WiFi state by querying [ConnectivityManager] directly.
+     * Returns the current WiFi state by querying [WifiManager] directly.
      *
      * Unlike [observeWifiNetwork], this performs a one-shot synchronous check and is
      * suitable for on-demand refresh (e.g. after location permissions are granted).
      */
     fun getCurrentState(): WifiNetworkState {
+        // First verify we're actually connected to WiFi
         val network = connectivityManager.activeNetwork
         if (network == null) {
             Log.d(TAG, "getCurrentState() -> Disconnected (no active network)")
@@ -67,7 +70,8 @@ class WifiMonitor @Inject constructor(
             return WifiNetworkState.Disconnected
         }
 
-        val wifiInfo = capabilities.transportInfo as? WifiInfo
+        // Get SSID from WifiManager (includes location info when permissions granted)
+        val wifiInfo = wifiManager.connectionInfo
         val state = parseWifiInfo(wifiInfo)
 
         when (state) {
