@@ -34,19 +34,31 @@ class HomeViewModel @Inject constructor(
     private val trackerDao: TrackerDao,
     private val eventRepository: EventRepository,
     private val eventDao: EventDao,
-    wifiMonitor: WifiMonitor
+    private val wifiMonitor: WifiMonitor
 ) : ViewModel() {
 
-    private val _wifiState = wifiMonitor.observeWifiNetwork()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), WifiNetworkState.Disconnected)
+    // Use MutableStateFlow so we can directly update the state when refresh() is called.
+    // This mirrors what happens on app restart, where getCurrentState() provides the initial value.
+    private val _wifiState = MutableStateFlow<WifiNetworkState>(wifiMonitor.getCurrentState())
+
+    init {
+        // Collect from the network callback and update our state
+        viewModelScope.launch {
+            wifiMonitor.observeWifiNetwork().collect { state ->
+                _wifiState.value = state
+            }
+        }
+    }
 
     val currentSsid: StateFlow<String?> = _wifiState.map {
         (it as? WifiNetworkState.Connected)?.ssid
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000),
+        (wifiMonitor.getCurrentState() as? WifiNetworkState.Connected)?.ssid)
 
     val currentBssid: StateFlow<String?> = _wifiState.map {
         (it as? WifiNetworkState.Connected)?.bssid
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000),
+        (wifiMonitor.getCurrentState() as? WifiNetworkState.Connected)?.bssid)
 
     val trackers: StateFlow<List<Tracker>> = trackerRepository.getAll()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -143,8 +155,10 @@ class HomeViewModel @Inject constructor(
     }
 
     suspend fun refresh() {
-        // The WiFi state is already observed via a live Flow. This suspend function
-        // gives the pull-to-refresh gesture a brief moment to show before dismissing.
+        // Re-query the current WiFi state and update our MutableStateFlow directly.
+        // This is exactly what happens on app restart (getCurrentState() provides the value),
+        // so it should behave identically without needing to restart the app.
+        _wifiState.value = wifiMonitor.getCurrentState()
         kotlinx.coroutines.delay(REFRESH_DISPLAY_DURATION_MS)
     }
 

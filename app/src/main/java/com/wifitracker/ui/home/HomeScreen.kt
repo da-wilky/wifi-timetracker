@@ -49,6 +49,18 @@ fun HomeScreen(
         }
     }
 
+    // Track permission state transitions to trigger refresh only when changing from denied to granted
+    var previousPermissionsGranted by remember { mutableStateOf(permissionsState.allPermissionsGranted) }
+    LaunchedEffect(permissionsState.allPermissionsGranted) {
+        if (!previousPermissionsGranted && permissionsState.allPermissionsGranted) {
+            // Permissions just granted - wait briefly for Android to propagate the permission
+            // before querying the WiFi state, otherwise getCurrentState() may still see <unknown ssid>
+            kotlinx.coroutines.delay(200)
+            viewModel.refresh()
+        }
+        previousPermissionsGranted = permissionsState.allPermissionsGranted
+    }
+
     // Split trackers: connected one first (if tracked), then the rest
     val connectedTracker = if (isTracked && currentSsid != null) {
         trackers.firstOrNull { it.ssid == currentSsid }
