@@ -31,6 +31,7 @@ class EventLogViewModel @Inject constructor(
 ) : ViewModel() {
 
     val showDays: StateFlow<Boolean> = localeManager.showDaysFlow
+        .stateIn(viewModelScope, SharingStarted.Eagerly, localeManager.showDaysFlow.value)
 
     private val trackerId: Long = savedStateHandle.get<Long>("trackerId") ?: 0L
 

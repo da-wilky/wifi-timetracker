@@ -1,11 +1,14 @@
 package com.wifitracker.ui.settings
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.wifitracker.util.LocaleManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
 @HiltViewModel
@@ -22,6 +25,7 @@ class SettingsViewModel @Inject constructor(
     }
 
     val showDays: StateFlow<Boolean> = localeManager.showDaysFlow
+        .stateIn(viewModelScope, SharingStarted.Eagerly, localeManager.showDaysFlow.value)
 
     fun setShowDays(showDays: Boolean) {
         localeManager.setShowDays(showDays)

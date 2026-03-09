@@ -35,6 +35,7 @@ fun HomeScreen(
     val trackers by viewModel.trackers.collectAsState()
     val showWarning by viewModel.showOrphanedWarning.collectAsState()
     val selectedFilter by viewModel.selectedFilter.collectAsState()
+    val showDays by viewModel.showDays.collectAsState()
 
     // Compute filter nav-args once per filter change and reuse for all tracker clicks.
     val (filterNavStart, filterNavEnd) = remember(selectedFilter) {
@@ -271,7 +272,8 @@ fun HomeScreen(
                             isCurrentlyConnected = true,
                             onDelete = { viewModel.deleteTracker(tracker) },
                             onReset = { viewModel.resetTimer(tracker.id) },
-                            onClick = { onNavigateToEventLog(tracker.id, filterNavStart, filterNavEnd) }
+                            onClick = { onNavigateToEventLog(tracker.id, filterNavStart, filterNavEnd) },
+                            showDays = showDays
                         )
                     }
                 }
@@ -284,7 +286,8 @@ fun HomeScreen(
                         displayTime = displayTime,
                         onDelete = { viewModel.deleteTracker(tracker) },
                         onReset = { viewModel.resetTimer(tracker.id) },
-                        onClick = { onNavigateToEventLog(tracker.id, filterNavStart, filterNavEnd) }
+                        onClick = { onNavigateToEventLog(tracker.id, filterNavStart, filterNavEnd) },
+                        showDays = showDays
                     )
                 }
             }

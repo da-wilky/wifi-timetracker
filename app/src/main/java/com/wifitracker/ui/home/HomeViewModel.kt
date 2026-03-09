@@ -20,6 +20,7 @@ import com.wifitracker.service.WifiMonitor
 import com.wifitracker.service.WifiNetworkState
 import com.wifitracker.service.WifiTrackingService
 import com.wifitracker.util.DateFilterCalculator
+import com.wifitracker.util.LocaleManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.delay
@@ -34,7 +35,8 @@ class HomeViewModel @Inject constructor(
     private val trackerDao: TrackerDao,
     private val eventRepository: EventRepository,
     private val eventDao: EventDao,
-    private val wifiMonitor: WifiMonitor
+    private val wifiMonitor: WifiMonitor,
+    private val localeManager: LocaleManager
 ) : ViewModel() {
 
     // Use MutableStateFlow so we can directly update the state when refresh() is called.
@@ -71,6 +73,9 @@ class HomeViewModel @Inject constructor(
         if (ssid == null) return@combine false
         trackerList.any { it.ssid == ssid }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+    val showDays: StateFlow<Boolean> = localeManager.showDaysFlow
+        .stateIn(viewModelScope, SharingStarted.Eagerly, localeManager.showDaysFlow.value)
 
     private val _selectedFilter = MutableStateFlow<DateFilter>(DateFilter.All)
     val selectedFilter: StateFlow<DateFilter> = _selectedFilter.asStateFlow()
