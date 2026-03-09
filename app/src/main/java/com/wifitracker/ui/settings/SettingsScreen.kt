@@ -23,6 +23,7 @@ fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val currentLanguage by viewModel.currentLanguage.collectAsState()
+    val showDays by viewModel.showDays.collectAsState()
     val activity = LocalContext.current as? MainActivity
 
     Scaffold(
@@ -67,6 +68,41 @@ fun SettingsScreen(
                     }
                 )
             }
+
+            HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+
+            Text(
+                text = stringResource(R.string.display_preference),
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = stringResource(R.string.setting_show_days),
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                Switch(
+                    checked = showDays,
+                    onCheckedChange = { viewModel.setShowDays(it) }
+                )
+            }
+
+            Text(
+                text = stringResource(
+                    if (showDays) R.string.setting_show_days_on_hint
+                    else R.string.setting_show_days_off_hint
+                ),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 2.dp)
+            )
         }
     }
 }

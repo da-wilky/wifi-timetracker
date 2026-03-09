@@ -26,6 +26,7 @@ fun TrackersScreen(
 ) {
     val trackers by viewModel.trackers.collectAsState()
     val selectedFilter by viewModel.selectedFilter.collectAsState()
+    val showDays by viewModel.showDays.collectAsState()
     var showFilterDialog by remember { mutableStateOf(false) }
 
     val pullRefreshState = rememberPullToRefreshState()
@@ -71,7 +72,8 @@ fun TrackersScreen(
                         displayTime = displayTime,
                         onDelete = { viewModel.deleteTracker(tracker) },
                         onReset = { viewModel.resetTimer(tracker.id) },
-                        onClick = { onNavigateToEventLog(tracker.id) }
+                        onClick = { onNavigateToEventLog(tracker.id) },
+                        showDays = showDays
                     )
                 }
             }

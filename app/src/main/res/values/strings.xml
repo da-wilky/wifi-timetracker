@@ -61,4 +61,8 @@
     <string name="filter_select_end_time">Select End Time</string>
     <string name="filter_time_range">Time Range</string>
     <string name="filtered_time_range">Filtered Timerange</string>
+    <string name="display_preference">Display</string>
+    <string name="setting_show_days">Show days separately</string>
+    <string name="setting_show_days_on_hint">Duration shown as days, hours, minutes, seconds (e.g. 2d 3h 45m 10s)</string>
+    <string name="setting_show_days_off_hint">Duration shown as hours, minutes, seconds (e.g. 51h 45m 10s)</string>
 </resources>

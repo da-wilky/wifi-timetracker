@@ -12,6 +12,7 @@ import com.wifitracker.data.repository.BssidRepository
 import com.wifitracker.domain.model.BssidRecord
 import com.wifitracker.domain.model.EventType
 import com.wifitracker.domain.model.WifiEvent
+import com.wifitracker.util.LocaleManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,8 +26,12 @@ import javax.inject.Inject
 class EventLogViewModel @Inject constructor(
     private val eventDao: EventDao,
     private val bssidRepository: BssidRepository,
+    private val localeManager: LocaleManager,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
+
+    val showDays: StateFlow<Boolean> = localeManager.showDaysFlow
+        .stateIn(viewModelScope, SharingStarted.Eagerly, localeManager.showDaysFlow.value)
 
     private val trackerId: Long = savedStateHandle.get<Long>("trackerId") ?: 0L
 

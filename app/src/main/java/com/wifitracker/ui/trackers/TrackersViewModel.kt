@@ -9,6 +9,7 @@ import com.wifitracker.domain.model.DateFilter
 import com.wifitracker.domain.model.EventType
 import com.wifitracker.domain.model.Tracker
 import com.wifitracker.util.DateFilterCalculator
+import com.wifitracker.util.LocaleManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
@@ -19,8 +20,12 @@ import javax.inject.Inject
 class TrackersViewModel @Inject constructor(
     private val trackerRepository: TrackerRepository,
     private val eventRepository: EventRepository,
-    private val eventDao: EventDao
+    private val eventDao: EventDao,
+    private val localeManager: LocaleManager
 ) : ViewModel() {
+
+    val showDays: StateFlow<Boolean> = localeManager.showDaysFlow
+        .stateIn(viewModelScope, SharingStarted.Eagerly, localeManager.showDaysFlow.value)
 
     val trackers: StateFlow<List<Tracker>> = trackerRepository.getAll()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
