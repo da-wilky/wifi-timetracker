@@ -7,12 +7,12 @@ plugins {
 }
 
 android {
-    namespace = "com.wifitracker"
+    namespace = "app.swilk.wifitracker"
     compileSdk = 35
     buildToolsVersion = "35.0.0"
 
     defaultConfig {
-        applicationId = "com.wifitracker"
+        applicationId = "app.swilk.wifitracker"
         minSdk = 33
         targetSdk = 35
         versionCode = 1

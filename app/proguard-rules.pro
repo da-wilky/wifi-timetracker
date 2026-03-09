@@ -6,7 +6,7 @@
 #   http://developer.android.com/guide/developing/tools/proguard.html
 
 # Keep Room entities
--keep class com.wifitracker.data.local.entity.** { *; }
+-keep class app.swilk.wifitracker.data.local.entity.** { *; }
 
 # Keep Hilt generated classes
 -keep class dagger.hilt.** { *; }
