@@ -21,7 +21,7 @@ object TimeFormatter {
     }
 
     private val dateTimeFormatter = DateTimeFormatter
-        .ofPattern("yyyy-MM-dd HH:mm")
+        .ofPattern("dd.MM.yyyy HH:mm")
         .withZone(ZoneId.systemDefault())
 
     fun formatDateTime(millis: Long): String =
