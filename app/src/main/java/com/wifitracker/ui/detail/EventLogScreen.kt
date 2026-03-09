@@ -88,7 +88,7 @@ fun EventLogScreen(
             }
 
             // Filtered Timerange section — shown above Recent Sessions when a filter is active
-            if (viewModel.hasFilter && filteredSessions.isNotEmpty()) {
+            if (viewModel.hasFilter) {
                 item {
                     Text(
                         text = stringResource(R.string.filtered_time_range),
@@ -109,12 +109,23 @@ fun EventLogScreen(
                         modifier = Modifier.padding(top = 4.dp, bottom = 4.dp)
                     )
                 }
-                items(filteredSessions) { event ->
-                    EventItem(
-                        event = event,
-                        isEditMode = false,
-                        onEdit = {}
-                    )
+                if (filteredSessions.isEmpty()) {
+                    item {
+                        Text(
+                            text = "No events within that timerange",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(vertical = 8.dp)
+                        )
+                    }
+                } else {
+                    items(filteredSessions) { event ->
+                        EventItem(
+                            event = event,
+                            isEditMode = false,
+                            onEdit = {}
+                        )
+                    }
                 }
                 item {
                     Divider(modifier = Modifier.padding(vertical = 16.dp))
