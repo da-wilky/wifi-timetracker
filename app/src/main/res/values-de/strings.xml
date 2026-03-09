@@ -57,4 +57,8 @@
     <string name="currently_connected_label">Aktuell verbunden</string>
     <string name="not_connected_hint">Nicht mit einem WLAN-Netzwerk verbunden</string>
     <string name="filtered_time_range">Gefilterter Zeitraum</string>
+    <string name="display_preference">Anzeige</string>
+    <string name="setting_show_days">Tage separat anzeigen</string>
+    <string name="setting_show_days_on_hint">Dauer wird als Tage, Stunden, Minuten, Sekunden angezeigt (z.B. 2d 3h 45m 10s)</string>
+    <string name="setting_show_days_off_hint">Dauer wird als Stunden, Minuten, Sekunden angezeigt (z.B. 51h 45m 10s)</string>
 </resources>

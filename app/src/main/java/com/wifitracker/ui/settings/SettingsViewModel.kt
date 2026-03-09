@@ -20,4 +20,10 @@ class SettingsViewModel @Inject constructor(
         localeManager.setLanguage(languageCode)
         _currentLanguage.value = languageCode
     }
+
+    val showDays: StateFlow<Boolean> = localeManager.showDaysFlow
+
+    fun setShowDays(showDays: Boolean) {
+        localeManager.setShowDays(showDays)
+    }
 }

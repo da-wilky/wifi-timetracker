@@ -25,7 +25,8 @@ fun TrackerCard(
     onReset: () -> Unit,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    isCurrentlyConnected: Boolean = false
+    isCurrentlyConnected: Boolean = false,
+    showDays: Boolean = false
 ) {
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showResetDialog by remember { mutableStateOf(false) }
@@ -55,7 +56,7 @@ fun TrackerCard(
                 style = MaterialTheme.typography.titleLarge
             )
 
-            TimerDisplay(durationMs = displayTime)
+            TimerDisplay(durationMs = displayTime, showDays = showDays)
 
             Row(
                 modifier = Modifier.fillMaxWidth(),

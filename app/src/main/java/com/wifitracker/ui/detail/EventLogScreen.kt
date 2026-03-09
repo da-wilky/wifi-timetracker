@@ -36,6 +36,7 @@ fun EventLogScreen(
     val filteredSessions by viewModel.filteredSessions.collectAsState()
     val filteredTime by viewModel.filteredTime.collectAsState()
     val bssidRecords by viewModel.bssidRecords.collectAsState()
+    val showDays by viewModel.showDays.collectAsState()
     var editingEvent by remember { mutableStateOf<WifiEvent?>(null) }
     var isEditMode by remember { mutableStateOf(false) }
 
@@ -104,7 +105,7 @@ fun EventLogScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
-                        text = TimeFormatter.formatDuration(filteredTime),
+                        text = TimeFormatter.formatDuration(filteredTime, showDays),
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.padding(top = 4.dp, bottom = 4.dp)
                     )

@@ -9,10 +9,11 @@ import com.wifitracker.util.TimeFormatter
 @Composable
 fun TimerDisplay(
     durationMs: Long,
+    showDays: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     Text(
-        text = TimeFormatter.formatDuration(durationMs),
+        text = TimeFormatter.formatDuration(durationMs, showDays),
         style = MaterialTheme.typography.headlineMedium,
         modifier = modifier
     )
