@@ -60,4 +60,5 @@
     <string name="filter_select_start_time">Select Start Time</string>
     <string name="filter_select_end_time">Select End Time</string>
     <string name="filter_time_range">Time Range</string>
+    <string name="filtered_time_range">Filtered Timerange</string>
 </resources>

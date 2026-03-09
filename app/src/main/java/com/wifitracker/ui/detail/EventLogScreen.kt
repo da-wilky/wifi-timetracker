@@ -19,6 +19,7 @@ import com.wifitracker.R
 import com.wifitracker.domain.model.BssidRecord
 import com.wifitracker.domain.model.WifiEvent
 import com.wifitracker.util.MondayFirstLocale
+import com.wifitracker.util.TimeFormatter
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -32,6 +33,8 @@ fun EventLogScreen(
 ) {
     val eventsPager = viewModel.eventsPager.collectAsLazyPagingItems()
     val recentSessions by viewModel.recentSessions.collectAsState()
+    val filteredSessions by viewModel.filteredSessions.collectAsState()
+    val filteredTime by viewModel.filteredTime.collectAsState()
     val bssidRecords by viewModel.bssidRecords.collectAsState()
     var editingEvent by remember { mutableStateOf<WifiEvent?>(null) }
     var isEditMode by remember { mutableStateOf(false) }
@@ -78,6 +81,51 @@ fun EventLogScreen(
                 }
                 items(bssidRecords) { record ->
                     BssidItem(record = record)
+                }
+                item {
+                    Divider(modifier = Modifier.padding(vertical = 16.dp))
+                }
+            }
+
+            // Filtered Timerange section — shown above Recent Sessions when a filter is active
+            if (viewModel.hasFilter) {
+                item {
+                    Text(
+                        text = stringResource(R.string.filtered_time_range),
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
+                    Text(
+                        text = TimeFormatter.formatDateRange(
+                            viewModel.filterStart,
+                            viewModel.filterEnd
+                        ),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = TimeFormatter.formatDuration(filteredTime),
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(top = 4.dp, bottom = 4.dp)
+                    )
+                }
+                if (filteredSessions.isEmpty()) {
+                    item {
+                        Text(
+                            text = "No events within that timerange",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(vertical = 8.dp)
+                        )
+                    }
+                } else {
+                    items(filteredSessions) { event ->
+                        EventItem(
+                            event = event,
+                            isEditMode = false,
+                            onEdit = {}
+                        )
+                    }
                 }
                 item {
                     Divider(modifier = Modifier.padding(vertical = 16.dp))

@@ -56,4 +56,5 @@
     <string name="edit_time_between">Zeit muss zwischen %1$s und %2$s liegen</string>
     <string name="currently_connected_label">Aktuell verbunden</string>
     <string name="not_connected_hint">Nicht mit einem WLAN-Netzwerk verbunden</string>
+    <string name="filtered_time_range">Gefilterter Zeitraum</string>
 </resources>
