@@ -21,8 +21,9 @@ import com.wifitracker.ui.settings.SettingsScreen
 
 sealed class Screen(val route: String) {
     data object Home : Screen("home")
-    data object EventLog : Screen("eventLog/{trackerId}") {
-        fun createRoute(trackerId: Long) = "eventLog/$trackerId"
+    data object EventLog : Screen("eventLog/{trackerId}/{filterStart}/{filterEnd}") {
+        fun createRoute(trackerId: Long, filterStart: Long = -1L, filterEnd: Long = -1L) =
+            "eventLog/$trackerId/$filterStart/$filterEnd"
     }
     data object Settings : Screen("settings")
 }
@@ -79,8 +80,8 @@ fun AppNavHost(
     ) {
         composable(Screen.Home.route) {
             HomeScreen(
-                onNavigateToEventLog = { trackerId ->
-                    navController.navigate(Screen.EventLog.createRoute(trackerId))
+                onNavigateToEventLog = { trackerId, filterStart, filterEnd ->
+                    navController.navigate(Screen.EventLog.createRoute(trackerId, filterStart, filterEnd))
                 }
             )
         }
@@ -88,7 +89,9 @@ fun AppNavHost(
         composable(
             route = Screen.EventLog.route,
             arguments = listOf(
-                navArgument("trackerId") { type = NavType.LongType }
+                navArgument("trackerId") { type = NavType.LongType },
+                navArgument("filterStart") { type = NavType.LongType; defaultValue = -1L },
+                navArgument("filterEnd") { type = NavType.LongType; defaultValue = -1L }
             )
         ) { backStackEntry ->
             val trackerId = backStackEntry.arguments?.getLong("trackerId") ?: 0L

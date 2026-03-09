@@ -1,5 +1,9 @@
 package com.wifitracker.util
 
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+
 object TimeFormatter {
     fun formatDuration(millis: Long): String {
         val totalSeconds = millis / 1000
@@ -15,4 +19,14 @@ object TimeFormatter {
             append("${seconds}s")
         }.trim()
     }
+
+    private val dateTimeFormatter = DateTimeFormatter
+        .ofPattern("yyyy-MM-dd HH:mm")
+        .withZone(ZoneId.systemDefault())
+
+    fun formatDateTime(millis: Long): String =
+        dateTimeFormatter.format(Instant.ofEpochMilli(millis))
+
+    fun formatDateRange(startMs: Long, endMs: Long): String =
+        "${formatDateTime(startMs)} – ${formatDateTime(endMs)}"
 }

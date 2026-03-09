@@ -135,15 +135,32 @@ class HomeViewModel @Inject constructor(
 
         var totalTime = 0L
         var lastConnect: Long? = null
+        var isFirstEvent = true
 
         for (event in events) {
             when (event.eventType) {
                 EventType.CONNECT -> lastConnect = event.timestamp
                 EventType.DISCONNECT -> {
-                    lastConnect?.let { totalTime += (event.timestamp - it) }
+                    if (lastConnect != null) {
+                        totalTime += event.timestamp - lastConnect
+                    } else if (isFirstEvent) {
+                        // First event in range is a DISCONNECT: the session started before
+                        // the range began, so count time from the range start.
+                        totalTime += event.timestamp - start
+                    }
                     lastConnect = null
                 }
             }
+            isFirstEvent = false
+        }
+
+        // If the range has already ended and there is still an open CONNECT, close it
+        // at the range boundary instead of treating it as a live session.
+        val now = System.currentTimeMillis()
+        val openConnect = lastConnect
+        if (openConnect != null && end <= now) {
+            totalTime += end - openConnect
+            lastConnect = null
         }
 
         return TrackerTimeCache(totalTime, lastConnect)

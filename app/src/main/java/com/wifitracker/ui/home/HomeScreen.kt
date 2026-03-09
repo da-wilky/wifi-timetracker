@@ -18,13 +18,16 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.wifitracker.R
+import com.wifitracker.domain.model.DateFilter
 import com.wifitracker.ui.components.DateFilterDialog
 import com.wifitracker.ui.trackers.TrackerCard
+import com.wifitracker.util.DateFilterCalculator
+import com.wifitracker.util.TimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
 fun HomeScreen(
-    onNavigateToEventLog: (Long) -> Unit,
+    onNavigateToEventLog: (trackerId: Long, filterStart: Long, filterEnd: Long) -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val currentSsid by viewModel.currentSsid.collectAsState()
@@ -32,6 +35,15 @@ fun HomeScreen(
     val trackers by viewModel.trackers.collectAsState()
     val showWarning by viewModel.showOrphanedWarning.collectAsState()
     val selectedFilter by viewModel.selectedFilter.collectAsState()
+
+    // Compute filter nav-args once per filter change and reuse for all tracker clicks.
+    val (filterNavStart, filterNavEnd) = remember(selectedFilter) {
+        if (selectedFilter is DateFilter.All) {
+            Pair(-1L, -1L)
+        } else {
+            DateFilterCalculator.calculateRange(selectedFilter)
+        }
+    }
 
     var showFilterDialog by remember { mutableStateOf(false) }
 
@@ -132,7 +144,7 @@ fun HomeScreen(
                                         Text(stringResource(R.string.cancel))
                                     }
                                     Button(onClick = {
-                                        viewModel.getFirstTrackerId()?.let { onNavigateToEventLog(it) }
+                                        viewModel.getFirstTrackerId()?.let { onNavigateToEventLog(it, -1L, -1L) }
                                         viewModel.dismissOrphanedWarning()
                                     }) {
                                         Text(stringResource(R.string.view_events))
@@ -219,21 +231,31 @@ fun HomeScreen(
 
                 // "Trackers" heading with global filter settings icon
                 item(key = "trackers_heading") {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = stringResource(R.string.tab_trackers),
-                            style = MaterialTheme.typography.headlineSmall,
-                            modifier = Modifier.weight(1f)
-                        )
-                        IconButton(onClick = { showFilterDialog = true }) {
-                            Icon(
-                                imageVector = Icons.Default.Settings,
-                                contentDescription = stringResource(R.string.filter_time_range)
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = stringResource(R.string.tab_trackers),
+                                style = MaterialTheme.typography.headlineSmall,
+                                modifier = Modifier.weight(1f)
+                            )
+                            IconButton(onClick = { showFilterDialog = true }) {
+                                Icon(
+                                    imageVector = Icons.Default.Settings,
+                                    contentDescription = stringResource(R.string.filter_time_range)
+                                )
+                            }
+                        }
+                        if (selectedFilter !is DateFilter.All) {
+                            Text(
+                                text = TimeFormatter.formatDateRange(filterNavStart, filterNavEnd),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(bottom = 4.dp)
                             )
                         }
                     }
@@ -249,7 +271,7 @@ fun HomeScreen(
                             isCurrentlyConnected = true,
                             onDelete = { viewModel.deleteTracker(tracker) },
                             onReset = { viewModel.resetTimer(tracker.id) },
-                            onClick = { onNavigateToEventLog(tracker.id) }
+                            onClick = { onNavigateToEventLog(tracker.id, filterNavStart, filterNavEnd) }
                         )
                     }
                 }
@@ -262,7 +284,7 @@ fun HomeScreen(
                         displayTime = displayTime,
                         onDelete = { viewModel.deleteTracker(tracker) },
                         onReset = { viewModel.resetTimer(tracker.id) },
-                        onClick = { onNavigateToEventLog(tracker.id) }
+                        onClick = { onNavigateToEventLog(tracker.id, filterNavStart, filterNavEnd) }
                     )
                 }
             }
